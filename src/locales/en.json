@@ -1,0 +1,67 @@
+{
+  "app": {
+    "title": "Delivery Service Management",
+    "subtitle": "Complete Delivery Management System",
+    "loading": "Loading data..."
+  },
+  "menu": {
+    "dashboard": "Dashboard",
+    "deliveries": "Deliveries",
+    "agents": "Agents",
+    "provinces": "Provinces",
+    "reports": "Reports",
+    "financial": "Financial",
+    "settings": "Settings",
+    "logout": "Logout"
+  },
+  "stats": {
+    "total_deliveries": "Total Deliveries",
+    "total_revenue": "Total Revenue",
+    "active_agents": "Active Agents",
+    "active_provinces": "Active Provinces",
+    "pending_deliveries": "Pending Deliveries",
+    "today_deliveries": "Today's Deliveries"
+  },
+  "buttons": {
+    "add_delivery": "Add New Delivery",
+    "export": "Export",
+    "filter": "Filter",
+    "view_all": "View All",
+    "add_new": "Add New",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+  "tables": {
+    "tracking_number": "Tracking #",
+    "product_name": "Product Name",
+    "quantity": "Quantity",
+    "cost": "Cost",
+    "status": "Status",
+    "agent": "Agent",
+    "province": "Province"
+  },
+  "status": {
+    "delivered": "Delivered",
+    "pending": "Pending",
+    "in_transit": "In Transit",
+    "cancelled": "Cancelled"
+  },
+  "financial": {
+    "summary": "Financial Summary",
+    "total_costs": "Total Costs",
+    "agent_commissions": "Agent Commissions",
+    "total_revenue": "Total Revenue",
+    "net_profit": "Net Profit"
+  },
+  "quick_stats": {
+    "title": "Quick Stats",
+    "today_orders": "Today's Orders",
+    "pending_orders": "Pending Orders"
+  },
+  "top_agents": "Top Agents",
+  "active_provinces": "Active Provinces",
+  "quick_delivery": {
+    "title": "Quick Delivery",
+    "description": "Add a new delivery in seconds"
+  }
+}

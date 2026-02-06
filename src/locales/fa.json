@@ -1,0 +1,67 @@
+{
+  "app": {
+    "title": "مدیریت خدمات تحویل",
+    "subtitle": "سیستم مدیریت کامل خدمات تحویل",
+    "loading": "در حال بارگذاری اطلاعات..."
+  },
+  "menu": {
+    "dashboard": "داشبورد",
+    "deliveries": "تحویل‌ها",
+    "agents": "نمایندگان",
+    "provinces": "ولایات",
+    "reports": "گزارشات",
+    "financial": "مالی",
+    "settings": "تنظیمات",
+    "logout": "خروج"
+  },
+  "stats": {
+    "total_deliveries": "کل تحویل‌ها",
+    "total_revenue": "کل درآمد",
+    "active_agents": "نمایندگان فعال",
+    "active_provinces": "ولایات فعال",
+    "pending_deliveries": "تحویل‌های در انتظار",
+    "today_deliveries": "تحویل‌های امروز"
+  },
+  "buttons": {
+    "add_delivery": "افزودن تحویل جدید",
+    "export": "خروجی",
+    "filter": "فیلتر",
+    "view_all": "مشاهده همه",
+    "add_new": "افزودن جدید",
+    "save": "ذخیره",
+    "cancel": "لغو"
+  },
+  "tables": {
+    "tracking_number": "شماره پیگیری",
+    "product_name": "نام محصول",
+    "quantity": "تعداد",
+    "cost": "هزینه",
+    "status": "وضعیت",
+    "agent": "نماینده",
+    "province": "ولایت"
+  },
+  "status": {
+    "delivered": "تحویل شده",
+    "pending": "در انتظار",
+    "in_transit": "در حال انتقال",
+    "cancelled": "لغو شده"
+  },
+  "financial": {
+    "summary": "خلاصه مالی",
+    "total_costs": "کل هزینه‌ها",
+    "agent_commissions": "کمیسیون نمایندگان",
+    "total_revenue": "کل درآمد",
+    "net_profit": "سود خالص"
+  },
+  "quick_stats": {
+    "title": "آمار سریع",
+    "today_orders": "سفارشات امروز",
+    "pending_orders": "سفارشات در انتظار"
+  },
+  "top_agents": "بهترین نمایندگان",
+  "active_provinces": "ولایات فعال",
+  "quick_delivery": {
+    "title": "تحویل سریع",
+    "description": "یک تحویل جدید در چند ثانیه اضافه کنید"
+  }
+}

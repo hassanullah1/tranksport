@@ -1,0 +1,67 @@
+{
+  "app": {
+    "title": "د لیږد خدمت مدیریت",
+    "subtitle": "د لیږد خدمت بشپړ مدیریت سیستم",
+    "loading": "ډیټا ډیریدل..."
+  },
+  "menu": {
+    "dashboard": "ډیشبورډ",
+    "deliveries": "لیږدونه",
+    "agents": "اجنټان",
+    "provinces": "ولایتونه",
+    "reports": "راپورونه",
+    "financial": "مالي",
+    "settings": "ترتیبات",
+    "logout": "وتل"
+  },
+  "stats": {
+    "total_deliveries": "ټول لیږدونه",
+    "total_revenue": "ټول عاید",
+    "active_agents": "فعال اجنټان",
+    "active_provinces": "فعال ولایتونه",
+    "pending_deliveries": "پاتې لیږدونه",
+    "today_deliveries": "ننني لیږدونه"
+  },
+  "buttons": {
+    "add_delivery": "نوی لیږد اضافه کړئ",
+    "export": "صادرول",
+    "filter": "فلټر",
+    "view_all": "ټول وګورئ",
+    "add_new": "نوی اضافه کړئ",
+    "save": "ساتل",
+    "cancel": "لغوه کول"
+  },
+  "tables": {
+    "tracking_number": "تعقیب نمبر",
+    "product_name": "د محصول نوم",
+    "quantity": "مقدار",
+    "cost": "لګښت",
+    "status": "حالت",
+    "agent": "اجنټ",
+    "province": "ولایت"
+  },
+  "status": {
+    "delivered": "لیږل شوی",
+    "pending": "پاتې",
+    "in_transit": "په لاره کې",
+    "cancelled": "لغوه شوی"
+  },
+  "financial": {
+    "summary": "مالي لنډیز",
+    "total_costs": "ټول لګښتونه",
+    "agent_commissions": "د اجنټ کمیسیونونه",
+    "total_revenue": "ټول عاید",
+    "net_profit": "صافي ګټه"
+  },
+  "quick_stats": {
+    "title": "چټک احصائیه",
+    "today_orders": "ننني امرونه",
+    "pending_orders": "پاتې امرونه"
+  },
+  "top_agents": "غوره اجنټان",
+  "active_provinces": "فعال ولایتونه",
+  "quick_delivery": {
+    "title": "چټک لیږد",
+    "description": "په ثانیو کې نوی لیږد اضافه کړئ"
+  }
+}

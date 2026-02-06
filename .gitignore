@@ -1,0 +1,15 @@
+# Node / Electron
+node_modules/
+dist/
+dist-electron/
+
+# Databases (NEVER commit these)
+*.db
+*.sqlite
+*.sqlite3
+
+# SQL dumps / backups
+
+
+# Env
+.env
