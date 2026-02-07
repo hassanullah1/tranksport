@@ -12,7 +12,7 @@ const translations = {
 const LanguageContext = createContext();
 
 export const LanguageProvider = ({ children }) => {
-  const [language, setLanguage] = useState('en');
+  const [language, setLanguage] = useState('ps');
   const [isRTL, setIsRTL] = useState(false);
 
   useEffect(() => {

@@ -4,6 +4,10 @@ import Dashboard from "../pages/Dashboard";
 import Deliveries from "../pages/Deliveries";
 import Agents from "../pages/Agents";
 import Provinces from "../pages/Provinces";
+import DeliveriesList from '../pages/deliveries/DeliveriesList';
+import AddDelivery from '../pages/deliveries/AddDelivery';
+import EditDelivery from '../pages/deliveries/EditDelivery';
+import ViewDelivery from '../pages/deliveries/ViewDelivery';
 // import Financial from "../pages/Financial";
 // import Reports from "../pages/Reports";
 // import Settings from "../pages/Settings";
@@ -13,8 +17,11 @@ const AppRoutes = () => {
     <Routes>
       <Route path="/" element={<Dashboard />} />
        <Route path="/provinces" element={<Provinces />} />
-           <Route path="/agents" element={<Agents />} />
-           <Route path="/deliveries" element={<Deliveries />} />
+         <Route path="/agents" element={<Agents />} />
+        <Route path="/deliveries" element={<DeliveriesList />} />
+        <Route path="/deliveries/add" element={<AddDelivery />} />
+        <Route path="/deliveries/edit/:id" element={<EditDelivery />} />
+        <Route path="/deliveries/view/:id" element={<ViewDelivery />} />
       {/* 
   
      

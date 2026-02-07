@@ -494,9 +494,7 @@ const Provinces = () => {
                           <div className="font-medium text-gray-900">
                             {province.province_name}
                           </div>
-                          <div className="text-sm text-gray-500">
-                            {trans('table', 'id')}: {province.province_id}
-                          </div>
+                          
                         </div>
                       </div>
                     </td>
@@ -504,17 +502,13 @@ const Provinces = () => {
                       <div className="text-lg font-semibold text-gray-900">
                         {province.total_deliveries || 0}
                       </div>
-                      <div className="text-sm text-gray-500">
-                        {trans('table', 'deliveries_text')}
-                      </div>
+                     
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-lg font-semibold text-gray-900">
                         {province.total_items || 0}
                       </div>
-                      <div className="text-sm text-gray-500">
-                        {trans('table', 'items_text')}
-                      </div>
+                      
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {getStatusBadge(province.total_deliveries || 0)}

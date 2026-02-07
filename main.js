@@ -73,16 +73,16 @@ ipcMain.handle("search-provinces", (event, searchTerm) => provinceHandlers.searc
 ipcMain.handle("get-provinces-with-stats", () => provinceHandlers.getProvincesWithStats());
 // this agent 
 ipcMain.handle("get-agents", () => agentHandlers.getAgents());
-ipcMain.handle("get-agent", (event, agentId) => agentHandlers.getAgent(agentId));
+
 ipcMain.handle("add-agent", (event, agentData) => agentHandlers.addAgent(agentData));
 ipcMain.handle("update-agent", (event, agentData) => agentHandlers.updateAgent(agentData));
 ipcMain.handle("delete-agent", (event, agentId) => agentHandlers.deleteAgent(agentId));
 ipcMain.handle("search-agents", (event, searchTerm) => agentHandlers.searchAgents(searchTerm));
-ipcMain.handle("get-agent-provinces", (event, agentId) => agentHandlers.getAgentProvinces(agentId));
+
 ipcMain.handle("get-available-provinces", (event, agentId) => agentHandlers.getAvailableProvinces(agentId));
 ipcMain.handle("assign-province-to-agent", (event, assignmentData) => agentHandlers.assignProvinceToAgent(assignmentData));
 ipcMain.handle("remove-province-from-agent", (event, assignmentData) => agentHandlers.removeProvinceFromAgent(assignmentData));
-ipcMain.handle("get-agent-stats", (event, agentId, period) => agentHandlers.getAgentStats(agentId, period));
+
 ipcMain.handle("get-agents-with-province-count", () => agentHandlers.getAgentsWithProvinceCount());
 ipcMain.handle("bulk-assign-provinces", (event, bulkData) => agentHandlers.bulkAssignProvinces(bulkData));
 

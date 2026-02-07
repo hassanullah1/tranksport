@@ -12,7 +12,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
 
   // this agent related
   getAgents: () => ipcRenderer.invoke("get-agents"),
-  getAgent: (agentId) => ipcRenderer.invoke("get-agent", agentId),
+  
   addAgent: (agentData) => ipcRenderer.invoke("add-agent", agentData),
   updateAgent: (agentData) => ipcRenderer.invoke("update-agent", agentData),
   deleteAgent: (agentId) => ipcRenderer.invoke("delete-agent", agentId),
