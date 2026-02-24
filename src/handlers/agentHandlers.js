@@ -6,12 +6,10 @@ module.exports = (db) => {
       const [rows] = await db.query(`
         SELECT 
           a.*,
-          p.province_name,
-          COUNT(DISTINCT d.delivery_id) as total_deliveries
+          p.province_name
         FROM agents a
         LEFT JOIN provinces p ON a.province_id = p.province_id
-        LEFT JOIN deliveries d ON a.agent_id = d.agent_id
-        GROUP BY a.agent_id
+
         ORDER BY a.agent_name
       `);
       return rows;

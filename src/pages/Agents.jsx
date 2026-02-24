@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useLanguage } from "../contexts/LanguageContext";
+import { Link } from "react-router-dom";
 import { 
   FaPlus, 
   FaEdit, 
@@ -9,12 +10,11 @@ import {
   FaFilter,
   FaUserTie,
   FaMapMarkerAlt,
-  FaMoneyBillWave,
-  FaBox,
-  FaTimes,
-  FaCheck,
   FaPhone,
-  FaList
+  FaList,
+  FaEye,
+  FaTimes,
+  FaCheck
 } from "react-icons/fa";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -169,27 +169,29 @@ const Agents = () => {
   const translations = {
     header: {
       en: { title: "Agents Management", subtitle: "Manage delivery agents and their assigned provinces" },
-      ps: { title: "د اجنټانو مدیریت", subtitle: "د لیږد اجنټان او د دوی د ولایتونو اداره کړئ" },
+      ps: { title: "د نمایندګانو مدیریت", subtitle: "د لیږد نمایندګان او د دوی د ولایتونو اداره کړئ" },
       fa: { title: "مدیریت نمایندگان", subtitle: "مدیریت نمایندگان تحویل و ولایت‌های آنها" }
     },
     buttons: {
       en: {
-        add_agent: "Add New Agent",
+        add_agent: "Add",
         search: "Search",
         refresh: "Refresh",
         clear: "Clear",
         cancel: "Cancel",
         update: "Update Agent",
-        delete: "Delete Agent"
+        delete: "Delete Agent",
+        view_deliveries: "View Deliveries"
       },
       ps: {
-        add_agent: "نوی اجنټ اضافه کړئ",
+        add_agent: "نوی نمایند",
         search: "پلټل",
         refresh: "بیا ډیرول",
         clear: "پاکول",
         cancel: "لغوه کول",
-        update: "اجنټ تازه کول",
-        delete: "اجنټ ړنګول"
+        update: "نماینده تازه کول",
+        delete: "نماینده ړنګول",
+        view_deliveries: "لیږدونه وګورئ"
       },
       fa: {
         add_agent: "افزودن نماینده جدید",
@@ -198,7 +200,8 @@ const Agents = () => {
         clear: "پاک کردن",
         cancel: "لغو",
         update: "به روز رسانی نماینده",
-        delete: "حذف نماینده"
+        delete: "حذف نماینده",
+        view_deliveries: "مشاهده تحویل‌ها"
       }
     },
     form: {
@@ -210,7 +213,7 @@ const Agents = () => {
         no_province: "No province assigned"
       },
       ps: {
-        name: "د اجنټ نوم *",
+        name: "د نماینده نوم *",
         phone: "تلیفون",
         province: "تخصیص شوی ولایت",
         select_province: "ولایت غوره کړئ",
@@ -233,10 +236,10 @@ const Agents = () => {
         assigned_province: "Assigned Province"
       },
       ps: {
-        loading: "اجنټان ډیریدل...",
-        no_data: "هیڅ اجنټ و نه موندل شو",
-        add_first: "د پیل کولو لپاره خپل لومړی اجنټ اضافه کړئ",
-        search_placeholder: "اجنټان د نوم یا تلیفون له مخې پلټل...",
+        loading: "نمایندګان ډیریدل...",
+        no_data: "هیڅ نماینده و نه موندل شو",
+        add_first: "د پیل کولو لپاره خپل لومړی نماینده اضافه کړئ",
+        search_placeholder: "نمایندګان د نوم یا تلیفون له مخې پلټل...",
         assigned_province: "تخصیص شوی ولایت"
       },
       fa: {
@@ -264,7 +267,7 @@ const Agents = () => {
   }
 
   return (
-    <div className="p-4 md:p-6" dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className="p-1 md:p-1" dir={isRTL ? 'rtl' : 'ltr'}>
       <ToastContainer 
         position={isRTL ? "top-left" : "top-right"} 
         autoClose={3000} 
@@ -272,31 +275,26 @@ const Agents = () => {
       />
 
       {/* Header */}
-      <div className="mb-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
+      <div className="mb-2">
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-2">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">
+            <h2 className="text-2xl font-bold text-gray-800">
               {trans('header', 'title')}
-            </h1>
-            <p className="text-gray-600">
-              {trans('header', 'subtitle')}
-            </p>
+            </h2>
+            
           </div>
           <button
             onClick={() => setShowAddModal(true)}
-            className="mt-4 md:mt-0 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center"
+            className="mt-2 md:mt-0 bg-gradient-to-r from-primary-500 to-purple-500 hover:from-primary-600 hover:to-purple-600 text-white font-semibold py-2 px-6 rounded-lg transition-colors flex items-center justify-center"
           >
             <FaPlus className={`${isRTL ? 'ml-2' : 'mr-2'}`} /> 
             {trans('buttons', 'add_agent')}
           </button>
         </div>
-
-        {/* Stats Cards */}
-        
       </div>
 
       {/* Search and Controls */}
-      <div className="bg-white rounded-xl shadow p-4 mb-6">
+      <div className="bg-white rounded-xl shadow p-2 mb-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex-1">
             <div className="relative">
@@ -381,7 +379,7 @@ const Agents = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {agents.map((agent) => (
                   <tr key={agent.agent_id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-2">
                       <div className="flex items-center">
                         <div className={`w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center ${isRTL ? 'ml-3' : 'mr-3'}`}>
                           <FaUserTie className="text-blue-600" />
@@ -390,11 +388,11 @@ const Agents = () => {
                           <div className="font-medium text-gray-900">
                             {agent.agent_name}
                           </div>
-                         
+                        
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-2">
                       <div className="flex items-center">
                         <FaPhone className="text-gray-400 mr-2 rtl:mr-0 rtl:ml-2" />
                         <span className="text-gray-900">
@@ -402,7 +400,7 @@ const Agents = () => {
                         </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-2">
                       <div className="flex items-center">
                         <FaMapMarkerAlt className="text-gray-400 mr-2 rtl:mr-0 rtl:ml-2" />
                         <span className="text-gray-900">
@@ -410,8 +408,15 @@ const Agents = () => {
                         </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-2">
                       <div className="flex flex-wrap gap-2">
+                        <Link
+                          to={`/agents/${agent.agent_id}/deliveries`}
+                          className="text-green-600 hover:text-green-900 bg-green-50 hover:bg-green-100 p-2 rounded-lg transition-colors"
+                          title={trans('buttons', 'view_deliveries')}
+                        >
+                          <FaEye />
+                        </Link>
                         <button
                           onClick={() => openEditModal(agent)}
                           className="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 p-2 rounded-lg transition-colors"

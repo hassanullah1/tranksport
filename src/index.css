@@ -4,9 +4,13 @@
 
 @layer base {
   body {
-    font-family: 'Inter', 'Segoe UI', sans-serif;
+   font-family:  sans-serif;
     @apply antialiased;
   }
+  .font-persian {
+  font-family:  sans-serif;
+  
+}
 
   /* Custom scrollbar */
   ::-webkit-scrollbar {

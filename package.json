@@ -5,7 +5,10 @@
   "main": "main.js",
   "scripts": {
     "build": "vite build",
+    "app": "electron-builder",
+    "dist": "npm run build && npm run rebuild && electron-builder",
     "start": "vite",
+    "rebuild": "electron-rebuild",
     "electron": "electron .",
     "dev": "concurrently \"cross-env VITE_DEV=true vite\" \"cross-env VITE_DEV=true electron .\"",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -14,26 +17,30 @@
     "appId": "com.dentalclinic.app",
     "productName": "Dental Clinic Management",
     "directories": {
-      "output": "dist"
+      "output": "release"
     },
+    "asar": false,
     "files": [
-      "build/**/*",
+      "dist/**/*",
       "main.js",
       "preload.js",
-      "db.db",
-      "node_modules/**/*"
+      "src/handlers/**/*",
+      "src/locales/**/*",
+      "src/pages/**/*",
+      "src/routes/**/*",
+      "package.json",
+      "locales/**/*",
+      "public/**/*"
+    ],
+    "extraResources": [
+      "src/handlers/**/*",
+      "src/locales/**/*",
+      "src/pages/**/*",
+      "src/routes/**/*"
     ],
     "win": {
       "target": "nsis",
-      "icon": "build/favicon.ico"
-    },
-    "mac": {
-      "target": "dmg",
-      "icon": "build/favicon.ico"
-    },
-    "linux": {
-      "target": "AppImage",
-      "icon": "build/favicon.ico"
+      "icon": "dist/favicon.ico"
     }
   },
   "keywords": [],
@@ -41,7 +48,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "electron": "^40.1.0",
+    "electron-log": "^5.4.3",
     "mysql2": "^3.16.3",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
@@ -49,6 +56,7 @@
     "react-router-dom": "^7.13.0",
     "react-to-print": "^3.2.0",
     "react-toastify": "^11.0.5",
+    "recharts": "^3.7.0",
     "sqlite3": "^5.1.7"
   },
   "devDependencies": {
@@ -56,6 +64,8 @@
     "autoprefixer": "^10.4.24",
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
+    "electron": "^28.3.3",
+    "electron-builder": "^26.7.0",
     "electron-rebuild": "^3.2.9",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.19",

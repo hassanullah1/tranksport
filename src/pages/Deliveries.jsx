@@ -54,7 +54,7 @@ const Deliveries = () => {
     item_description: "",
     quantity: 1,
     item_cost: 0,
-    selling_price: 0,
+    
     customer_id: "",
     agent_id: "",
     province_id: "",
@@ -68,7 +68,7 @@ const Deliveries = () => {
     item_description: "",
     quantity: 1,
     item_cost: 0,
-    selling_price: 0,
+   
     customer_id: "",
     agent_id: "",
     province_id: "",
@@ -78,9 +78,9 @@ const Deliveries = () => {
 
   const [newCustomer, setNewCustomer] = useState({
     customer_name: "",
-    email: "",
+   
     phone: "",
-    address: "",
+   
     province_id: ""
   });
 
@@ -198,9 +198,9 @@ const Deliveries = () => {
       setShowCustomerModal(false);
       setNewCustomer({
         customer_name: "",
-        email: "",
+       
         phone: "",
-        address: "",
+        
         province_id: ""
       });
       // Refresh customers list
@@ -232,7 +232,7 @@ const Deliveries = () => {
       item_description: "",
       quantity: 1,
       item_cost: 0,
-      selling_price: 0,
+     
       customer_id: "",
       agent_id: "",
       province_id: "",
@@ -407,7 +407,7 @@ const Deliveries = () => {
         description: "Description",
         quantity: "Quantity",
         item_cost: "Item Cost ($) *",
-        selling_price: "Selling Price ($)",
+       
         customer: "Customer",
         agent: "Agent",
         province: "Province",
@@ -423,7 +423,7 @@ const Deliveries = () => {
         description: "تفصیل",
         quantity: "مقدار",
         item_cost: "د توکی لګښت ($) *",
-        selling_price: "پلورنځی ($)",
+     
         customer: "پیرودونکی",
         agent: "اجنټ",
         province: "ولایت",
@@ -439,7 +439,7 @@ const Deliveries = () => {
         description: "توضیحات",
         quantity: "تعداد",
         item_cost: "هزینه آیتم ($) *",
-        selling_price: "قیمت فروش ($)",
+     
         customer: "مشتری",
         agent: "نماینده",
         province: "ولایت",
@@ -721,14 +721,7 @@ const Deliveries = () => {
                         {delivery.delivery_date_formatted || delivery.delivery_date}
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm font-semibold text-gray-900">
-                        ${(delivery.quantity * delivery.selling_price).toFixed(2)}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        Profit: ${(delivery.net_profit || 0)}
-                      </div>
-                    </td>
+                 
                     <td className="px-6 py-4 whitespace-nowrap">
                       {getStatusBadge(delivery.status)}
                     </td>
@@ -756,7 +749,7 @@ const Deliveries = () => {
                               item_description: delivery.item_description || "",
                               quantity: delivery.quantity,
                               item_cost: delivery.item_cost,
-                              selling_price: delivery.selling_price,
+                          
                               customer_id: delivery.customer_id || "",
                               agent_id: delivery.agent_id || "",
                               province_id: delivery.province_id || "",
@@ -870,19 +863,7 @@ const Deliveries = () => {
                     </div>
                   </div>
                   
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {trans('form', 'selling_price')}
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={newDelivery.selling_price}
-                      onChange={(e) => setNewDelivery({...newDelivery, selling_price: parseFloat(e.target.value) || 0})}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
-                    />
-                  </div>
+                
                 </div>
 
                 {/* Right Column - Delivery Details */}
@@ -988,10 +969,7 @@ const Deliveries = () => {
                         <span className="text-gray-600">Item Cost:</span>
                         <span className="font-medium">${(newDelivery.item_cost * newDelivery.quantity).toFixed(2)}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Selling Price:</span>
-                        <span className="font-medium">${(newDelivery.selling_price * newDelivery.quantity).toFixed(2)}</span>
-                      </div>
+                     
                       {newDelivery.agent_id && (
                         <div className="flex justify-between">
                           <span className="text-gray-600">Commission:</span>
@@ -1000,16 +978,7 @@ const Deliveries = () => {
                           </span>
                         </div>
                       )}
-                      <div className="flex justify-between pt-2 border-t">
-                        <span className="font-semibold text-gray-700">Estimated Profit:</span>
-                        <span className="font-bold text-green-600">
-                          ${(
-                            (newDelivery.selling_price * newDelivery.quantity) - 
-                            (newDelivery.item_cost * newDelivery.quantity) - 
-                            (newDelivery.item_cost * newDelivery.quantity * (agents.find(a => a.agent_id == newDelivery.agent_id)?.commission_rate || 0) / 100)
-                          ).toFixed(2)}
-                        </span>
-                      </div>
+                   
                     </div>
                   </div>
                 </div>
@@ -1319,22 +1288,12 @@ const Deliveries = () => {
                         <span className="text-gray-600">Total Item Cost:</span>
                         <span className="font-medium">${(selectedDelivery.quantity * selectedDelivery.item_cost).toFixed(2)}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Total Selling Price:</span>
-                        <span className="font-medium">${(selectedDelivery.quantity * selectedDelivery.selling_price).toFixed(2)}</span>
-                      </div>
+                     
                       <div className="flex justify-between">
                         <span className="text-gray-600">Commission ({selectedDelivery.commission_rate || 0}%):</span>
                         <span className="font-medium">${(selectedDelivery.quantity * selectedDelivery.commission_amount).toFixed(2)}</span>
                       </div>
-                      <div className="flex justify-between pt-2 border-t">
-                        <span className="font-semibold text-gray-700">Net Profit:</span>
-                        <span className="font-bold text-green-600">
-                          ${((selectedDelivery.quantity * selectedDelivery.selling_price) - 
-                            (selectedDelivery.quantity * selectedDelivery.item_cost) - 
-                            (selectedDelivery.quantity * selectedDelivery.commission_amount)).toFixed(2)}
-                        </span>
-                      </div>
+                    
                     </div>
                   </div>
                 </div>
@@ -1407,7 +1366,7 @@ const Deliveries = () => {
                   <div className="text-sm text-red-600">
                     • Tracking: {selectedDelivery.tracking_number}<br />
                     • Item: {selectedDelivery.item_name}<br />
-                    • Amount: ${(selectedDelivery.quantity * selectedDelivery.selling_price).toFixed(2)}
+                   
                   </div>
                 </div>
               </div>

@@ -192,7 +192,7 @@ const Provinces = () => {
     },
     buttons: {
       en: {
-        add_province: "Add New Province",
+        add_province: "Add",
         search: "Search",
         refresh: "Refresh",
         clear: "Clear",
@@ -201,7 +201,7 @@ const Provinces = () => {
         delete: "Delete Province"
       },
       ps: {
-        add_province: "نوی ولایت اضافه کړئ",
+        add_province: "نوی ولایت ",
         search: "پلټل",
         refresh: "بیا ډیرول",
         clear: "پاکول",
@@ -210,7 +210,7 @@ const Provinces = () => {
         delete: "ولایت ړنګول"
       },
       fa: {
-        add_province: "افزودن ولایت جدید",
+        add_province: "افزودن ولایت",
         search: "جستجو",
         refresh: "بارگذاری مجدد",
         clear: "پاک کردن",
@@ -363,7 +363,7 @@ const Provinces = () => {
   };
 
   return (
-    <div className="p-4 md:p-6" dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className="p-1 md:p-1" dir={isRTL ? 'rtl' : 'ltr'}>
       <ToastContainer 
         position={isRTL ? "top-left" : "top-right"} 
         autoClose={3000} 
@@ -371,19 +371,17 @@ const Provinces = () => {
       />
 
       {/* Header */}
-      <div className="mb-6">
+      <div className="mb-2">
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">
+            <h2 className="text-2xl font-bold text-gray-800">
               {trans('header', 'title')}
-            </h1>
-            <p className="text-gray-600">
-              {trans('header', 'subtitle')}
-            </p>
+            </h2>
+           
           </div>
           <button
             onClick={() => setShowAddModal(true)}
-            className="mt-4 md:mt-0 bg-gradient-to-r from-primary-500 to-purple-500 hover:from-primary-600 hover:to-purple-600 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center"
+            className="mt-2 md:mt-0 bg-gradient-to-r from-primary-500 to-purple-500 hover:from-primary-600 hover:to-purple-600 text-white font-semibold py-2 px-6 rounded-lg transition-all duration-300 flex items-center justify-center"
           >
             <FaPlus className={`${isRTL ? 'ml-2' : 'mr-2'}`} /> 
             {trans('buttons', 'add_province')}
@@ -394,7 +392,7 @@ const Provinces = () => {
       </div>
 
       {/* Search and Controls */}
-      <div className="bg-white rounded-xl shadow p-4 mb-6">
+      <div className="bg-white rounded-xl shadow p-2 mb-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex-1">
             <div className="relative">
@@ -471,9 +469,7 @@ const Provinces = () => {
                   <th className={`px-6 py-3 text-${isRTL ? 'right' : 'left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
                     {trans('table', 'items')}
                   </th>
-                  <th className={`px-6 py-3 text-${isRTL ? 'right' : 'left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
-                    {trans('table', 'status')}
-                  </th>
+               
                   <th className={`px-6 py-3 text-${isRTL ? 'right' : 'left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
                     {trans('table', 'created')}
                   </th>
@@ -510,9 +506,7 @@ const Provinces = () => {
                       </div>
                       
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {getStatusBadge(province.total_deliveries || 0)}
-                    </td>
+                    
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {new Date(province.created_at).toLocaleDateString(language === 'en' ? 'en-US' : language === 'fa' ? 'fa-IR' : 'ps-AF')}
                     </td>

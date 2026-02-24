@@ -7,7 +7,7 @@
   "menu": {
     "dashboard": "ډیشبورډ",
     "deliveries": "لیږدونه",
-    "agents": "اجنټان",
+    "agents": "نمایندکان",
     "provinces": "ولایتونه",
     "reports": "راپورونه",
     "financial": "مالي",
@@ -17,7 +17,7 @@
   "stats": {
     "total_deliveries": "ټول لیږدونه",
     "total_revenue": "ټول عاید",
-    "active_agents": "فعال اجنټان",
+    "active_agents": "فعال نمایندکان",
     "active_provinces": "فعال ولایتونه",
     "pending_deliveries": "پاتې لیږدونه",
     "today_deliveries": "ننني لیږدونه"
@@ -58,7 +58,7 @@
     "today_orders": "ننني امرونه",
     "pending_orders": "پاتې امرونه"
   },
-  "top_agents": "غوره اجنټان",
+  "top_agents": "غوره نمایندکان",
   "active_provinces": "فعال ولایتونه",
   "quick_delivery": {
     "title": "چټک لیږد",

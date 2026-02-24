@@ -1,4 +1,7 @@
 // provinceHandlers.js
+const { ipcMain, dialog } = require("electron");
+const fs = require("fs/promises");
+const path = require("path");
 module.exports = (db) => {
   // Get all provinces
   const getProvinces = async () => {
@@ -159,9 +162,7 @@ module.exports = (db) => {
           COUNT(DISTINCT d.delivery_id) as total_deliveries,
           COALESCE(SUM(di.quantity), 0) as total_items,
           COALESCE(SUM(di.total_cost), 0) as total_item_costs,
-          COALESCE(SUM(d.commission_amount), 0) as total_commissions,
-          COALESCE(SUM(di.selling_price * di.quantity), 0) as total_revenue,
-          COALESCE(SUM(di.selling_price * di.quantity) - SUM(di.total_cost) - SUM(d.commission_amount), 0) as total_profit,
+         
           COUNT(DISTINCT a.agent_id) as total_agents,
           COUNT(DISTINCT c.customer_id) as total_customers,
           COUNT(DISTINCT CASE WHEN d.status = 'delivered' THEN d.delivery_id END) as delivered_deliveries,
@@ -191,12 +192,12 @@ module.exports = (db) => {
           COUNT(DISTINCT d.delivery_id) as total_deliveries,
           COALESCE(SUM(di.quantity), 0) as total_items,
           COALESCE(SUM(di.total_cost), 0) as total_costs,
-          COALESCE(SUM(di.selling_price * di.quantity), 0) as total_revenue,
+         
           COALESCE(SUM(d.commission_amount), 0) as total_commissions,
-          COALESCE(SUM(di.selling_price * di.quantity) - SUM(di.total_cost) - SUM(d.commission_amount), 0) as total_profit,
+        
           COUNT(DISTINCT a.agent_id) as agents_count,
-          COUNT(DISTINCT c.customer_id) as customers_count,
-          ROUND(COALESCE(SUM(di.selling_price * di.quantity) / NULLIF(COUNT(DISTINCT d.delivery_id), 0), 0), 2) as avg_revenue_per_delivery
+          COUNT(DISTINCT c.customer_id) as customers_count
+        
         FROM provinces p
         LEFT JOIN deliveries d ON p.province_id = d.province_id
         LEFT JOIN delivery_items di ON d.delivery_id = di.delivery_id
@@ -242,10 +243,8 @@ module.exports = (db) => {
           COUNT(DISTINCT d.delivery_id) as deliveries_count,
           COUNT(DISTINCT a.agent_id) as agents_count,
           COUNT(DISTINCT c.customer_id) as customers_count,
-          COALESCE(SUM(di.quantity), 0) as items_count,
-          COALESCE(SUM(di.selling_price * di.quantity), 0) as revenue,
-          ROUND(COALESCE(SUM(di.selling_price * di.quantity) / NULLIF(COUNT(DISTINCT d.delivery_id), 0), 0), 2) as avg_order_value
-        FROM provinces p
+          COALESCE(SUM(di.quantity), 0) as items_count
+         
         LEFT JOIN deliveries d ON p.province_id = d.province_id
         LEFT JOIN delivery_items di ON d.delivery_id = di.delivery_id
         LEFT JOIN agents a ON p.province_id = a.province_id
@@ -297,8 +296,7 @@ module.exports = (db) => {
             COALESCE(SUM(di.quantity), 0) as total_items,
             COALESCE(SUM(di.total_cost), 0) as total_costs,
             COALESCE(SUM(d.commission_amount), 0) as total_commissions,
-            COALESCE(SUM(di.selling_price * di.quantity), 0) as total_revenue,
-            COALESCE(SUM(di.selling_price * di.quantity) - SUM(di.total_cost) - SUM(d.commission_amount), 0) as total_profit,
+           
             COUNT(CASE WHEN d.status = 'pending' THEN 1 END) as pending_deliveries,
             COUNT(CASE WHEN d.status = 'in_transit' THEN 1 END) as in_transit_deliveries,
             COUNT(CASE WHEN d.status = 'delivered' THEN 1 END) as delivered_deliveries,
@@ -321,8 +319,14 @@ module.exports = (db) => {
       throw error;
     }
   };
+  
+
+ 
+
+  
 
   return {
+    
     getProvinces,
     getProvince,
     addProvince,

@@ -32,11 +32,11 @@ module.exports = (db) => {
   // Add new customer
   const addCustomer = async (customerData) => {
     try {
-      const { customer_name, email, phone, address, province_id } = customerData;
+      const { customer_name,  phone, province_id } = customerData;
       
       const [result] = await db.query(
-        "INSERT INTO customers (customer_name, email, phone, address, province_id) VALUES (?, ?, ?, ?, ?)",
-        [customer_name, email || null, phone || null, address || null, province_id || null]
+        "INSERT INTO customers (customer_name,  phone,  province_id) VALUES (?, ?, ?)",
+        [customer_name,  phone || null,  province_id || null]
       );
       
       return { 
@@ -53,11 +53,11 @@ module.exports = (db) => {
   // Update customer
   const updateCustomer = async (customerData) => {
     try {
-      const { customer_id, customer_name, email, phone, address, province_id } = customerData;
+      const { customer_id, customer_name,  phone,  province_id } = customerData;
       
       const [result] = await db.query(
-        "UPDATE customers SET customer_name = ?, email = ?, phone = ?, address = ?, province_id = ? WHERE customer_id = ?",
-        [customer_name, email || null, phone || null, address || null, province_id || null, customer_id]
+        "UPDATE customers SET customer_name = ?,  phone = ?,  province_id = ? WHERE customer_id = ?",
+        [ null, phone ||  null, province_id || null, customer_id]
       );
       
       return { 
