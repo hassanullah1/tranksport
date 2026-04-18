@@ -15,6 +15,9 @@ import {
 } from "react-icons/fa";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { FaEye } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+
 
 const Provinces = () => {
   const { t, language, isRTL } = useLanguage();
@@ -25,6 +28,7 @@ const Provinces = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedProvince, setSelectedProvince] = useState(null);
+  const navigate = useNavigate();
   
   // Form states
   const [newProvince, setNewProvince] = useState({
@@ -363,10 +367,10 @@ const Provinces = () => {
   };
 
   return (
-    <div className="p-1 md:p-1" dir={isRTL ? 'rtl' : 'ltr'}>
-      <ToastContainer 
-        position={isRTL ? "top-left" : "top-right"} 
-        autoClose={3000} 
+    <div className="p-1 md:p-1" dir={isRTL ? "rtl" : "ltr"}>
+      <ToastContainer
+        position={isRTL ? "top-left" : "top-right"}
+        autoClose={3000}
         rtl={isRTL}
       />
 
@@ -375,20 +379,17 @@ const Provinces = () => {
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
           <div>
             <h2 className="text-2xl font-bold text-gray-800">
-              {trans('header', 'title')}
+              {trans("header", "title")}
             </h2>
-           
           </div>
           <button
             onClick={() => setShowAddModal(true)}
             className="mt-2 md:mt-0 bg-gradient-to-r from-primary-500 to-purple-500 hover:from-primary-600 hover:to-purple-600 text-white font-semibold py-2 px-6 rounded-lg transition-all duration-300 flex items-center justify-center"
           >
-            <FaPlus className={`${isRTL ? 'ml-2' : 'mr-2'}`} /> 
-            {trans('buttons', 'add_province')}
+            <FaPlus className={`${isRTL ? "ml-2" : "mr-2"}`} />
+            {trans("buttons", "add_province")}
           </button>
         </div>
-
-       
       </div>
 
       {/* Search and Controls */}
@@ -400,35 +401,37 @@ const Provinces = () => {
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                placeholder={trans('messages', 'search_placeholder')}
-                className={`w-full ${isRTL ? 'pr-10 pl-4' : 'pl-10 pr-4'} py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none`}
+                onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+                placeholder={trans("messages", "search_placeholder")}
+                className={`w-full ${isRTL ? "pr-10 pl-4" : "pl-10 pr-4"} py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none`}
               />
-              <FaSearch className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-3.5 text-gray-400`} />
+              <FaSearch
+                className={`absolute ${isRTL ? "right-3" : "left-3"} top-3.5 text-gray-400`}
+              />
             </div>
           </div>
-          
+
           <div className="flex space-x-3 rtl:space-x-reverse">
             <button
               onClick={handleSearch}
               className="bg-primary-600 hover:bg-primary-700 text-white font-semibold py-2.5 px-6 rounded-lg transition-colors flex items-center"
             >
-              <FaSearch className={`${isRTL ? 'ml-2' : 'mr-2'}`} /> 
-              {trans('buttons', 'search')}
+              <FaSearch className={`${isRTL ? "ml-2" : "mr-2"}`} />
+              {trans("buttons", "search")}
             </button>
             <button
               onClick={loadProvinces}
               className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2.5 px-6 rounded-lg transition-colors flex items-center"
             >
-              <FaSync className={`${isRTL ? 'ml-2' : 'mr-2'}`} /> 
-              {trans('buttons', 'refresh')}
+              <FaSync className={`${isRTL ? "ml-2" : "mr-2"}`} />
+              {trans("buttons", "refresh")}
             </button>
             <button
-              onClick={() => setSearchTerm('')}
+              onClick={() => setSearchTerm("")}
               className="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-2.5 px-6 rounded-lg transition-colors flex items-center"
             >
-              <FaFilter className={`${isRTL ? 'ml-2' : 'mr-2'}`} /> 
-              {trans('buttons', 'clear')}
+              <FaFilter className={`${isRTL ? "ml-2" : "mr-2"}`} />
+              {trans("buttons", "clear")}
             </button>
           </div>
         </div>
@@ -440,19 +443,25 @@ const Provinces = () => {
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600">{trans('messages', 'loading')}</p>
+              <p className="mt-4 text-gray-600">
+                {trans("messages", "loading")}
+              </p>
             </div>
           </div>
         ) : provinces.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 text-center">
             <FaMapMarkerAlt className="text-gray-300 text-6xl mb-4" />
-            <h3 className="text-lg font-semibold text-gray-700">{trans('messages', 'no_data')}</h3>
-            <p className="text-gray-500 mt-2">{trans('messages', 'add_first')}</p>
+            <h3 className="text-lg font-semibold text-gray-700">
+              {trans("messages", "no_data")}
+            </h3>
+            <p className="text-gray-500 mt-2">
+              {trans("messages", "add_first")}
+            </p>
             <button
               onClick={() => setShowAddModal(true)}
               className="mt-4 bg-primary-600 hover:bg-primary-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
             >
-              {trans('buttons', 'add_province')}
+              {trans("buttons", "add_province")}
             </button>
           </div>
         ) : (
@@ -460,37 +469,51 @@ const Provinces = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className={`px-6 py-3 text-${isRTL ? 'right' : 'left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
-                    {trans('table', 'province_name')}
+                  <th
+                    className={`px-6 py-3 text-${isRTL ? "right" : "left"} text-xs font-medium text-gray-500 uppercase tracking-wider`}
+                  >
+                    {trans("table", "province_name")}
                   </th>
-                  <th className={`px-6 py-3 text-${isRTL ? 'right' : 'left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
-                    {trans('table', 'deliveries')}
+                  <th
+                    className={`px-6 py-3 text-${isRTL ? "right" : "left"} text-xs font-medium text-gray-500 uppercase tracking-wider`}
+                  >
+                    {trans("table", "deliveries")}
                   </th>
-                  <th className={`px-6 py-3 text-${isRTL ? 'right' : 'left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
-                    {trans('table', 'items')}
+                  <th
+                    className={`px-6 py-3 text-${isRTL ? "right" : "left"} text-xs font-medium text-gray-500 uppercase tracking-wider`}
+                  >
+                    {trans("table", "items")}
                   </th>
-               
-                  <th className={`px-6 py-3 text-${isRTL ? 'right' : 'left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
-                    {trans('table', 'created')}
+
+                  <th
+                    className={`px-6 py-3 text-${isRTL ? "right" : "left"} text-xs font-medium text-gray-500 uppercase tracking-wider`}
+                  >
+                    {trans("table", "created")}
                   </th>
-                  <th className={`px-6 py-3 text-${isRTL ? 'right' : 'left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
-                    {trans('table', 'actions')}
+                  <th
+                    className={`px-6 py-3 text-${isRTL ? "right" : "left"} text-xs font-medium text-gray-500 uppercase tracking-wider`}
+                  >
+                    {trans("table", "actions")}
                   </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {provinces.map((province) => (
-                  <tr key={province.province_id} className="hover:bg-gray-50 transition-colors">
+                  <tr
+                    key={province.province_id}
+                    className="hover:bg-gray-50 transition-colors"
+                  >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div className={`w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center ${isRTL ? 'ml-3' : 'mr-3'}`}>
+                        <div
+                          className={`w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center ${isRTL ? "ml-3" : "mr-3"}`}
+                        >
                           <FaMapMarkerAlt className="text-primary-600" />
                         </div>
                         <div>
                           <div className="font-medium text-gray-900">
                             {province.province_name}
                           </div>
-                          
                         </div>
                       </div>
                     </td>
@@ -498,34 +521,65 @@ const Provinces = () => {
                       <div className="text-lg font-semibold text-gray-900">
                         {province.total_deliveries || 0}
                       </div>
-                     
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-lg font-semibold text-gray-900">
                         {province.total_items || 0}
                       </div>
-                      
                     </td>
-                    
+
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(province.created_at).toLocaleDateString(language === 'en' ? 'en-US' : language === 'fa' ? 'fa-IR' : 'ps-AF')}
+                      {new Date(province.created_at).toLocaleDateString(
+                        language === "en"
+                          ? "en-US"
+                          : language === "fa"
+                            ? "fa-IR"
+                            : "ps-AF",
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-2 rtl:space-x-reverse">
                         <button
                           onClick={() => openEditModal(province)}
                           className="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 p-2 rounded-lg transition-colors"
-                          title={language === 'en' ? "Edit" : language === 'ps' ? "سمول" : "ویرایش"}
+                          title={
+                            language === "en"
+                              ? "Edit"
+                              : language === "ps"
+                                ? "سمول"
+                                : "ویرایش"
+                          }
                         >
                           <FaEdit />
                         </button>
                         <button
                           onClick={() => openDeleteModal(province)}
                           className="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition-colors"
-                          title={language === 'en' ? "Delete" : language === 'ps' ? "ړنګول" : "حذف"}
+                          title={
+                            language === "en"
+                              ? "Delete"
+                              : language === "ps"
+                                ? "ړنګول"
+                                : "حذف"
+                          }
                           disabled={province.total_deliveries > 0}
                         >
                           <FaTrash />
+                        </button>
+                        <button
+                          onClick={() =>
+                            navigate(`/province/${province.province_id}`)
+                          } // you need useNavigate
+                          className="text-green-600 hover:text-green-900 bg-green-50 hover:bg-green-100 p-2 rounded-lg transition-colors"
+                          title={
+                            language === "en"
+                              ? "Details"
+                              : language === "ps"
+                                ? "تفصیلات"
+                                : "جزئیات"
+                          }
+                        >
+                          <FaEye />
                         </button>
                       </div>
                     </td>
@@ -544,7 +598,7 @@ const Provinces = () => {
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-bold text-gray-800">
-                  {trans('modals.add', 'title')}
+                  {trans("modals.add", "title")}
                 </h3>
                 <button
                   onClick={() => setShowAddModal(false)}
@@ -553,36 +607,40 @@ const Provinces = () => {
                   <FaTimes className="text-lg" />
                 </button>
               </div>
-              
+
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {trans('modals.add', 'label')}
+                    {trans("modals.add", "label")}
                   </label>
                   <input
                     type="text"
                     value={newProvince.province_name}
-                    onChange={(e) => setNewProvince({ province_name: e.target.value })}
+                    onChange={(e) =>
+                      setNewProvince({ province_name: e.target.value })
+                    }
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
-                    placeholder={trans('modals.add', 'placeholder')}
+                    placeholder={trans("modals.add", "placeholder")}
                     autoFocus
                   />
                 </div>
               </div>
-              
-              <div className={`flex justify-${isRTL ? 'start' : 'end'} space-x-3 rtl:space-x-reverse mt-8`}>
+
+              <div
+                className={`flex justify-${isRTL ? "start" : "end"} space-x-3 rtl:space-x-reverse mt-8`}
+              >
                 <button
                   onClick={() => setShowAddModal(false)}
                   className="px-6 py-2.5 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
                 >
-                  {trans('buttons', 'cancel')}
+                  {trans("buttons", "cancel")}
                 </button>
                 <button
                   onClick={handleAddProvince}
                   className="px-6 py-2.5 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors flex items-center"
                 >
-                  <FaPlus className={`${isRTL ? 'ml-2' : 'mr-2'}`} /> 
-                  {trans('modals.add', 'button')}
+                  <FaPlus className={`${isRTL ? "ml-2" : "mr-2"}`} />
+                  {trans("modals.add", "button")}
                 </button>
               </div>
             </div>
@@ -597,7 +655,7 @@ const Provinces = () => {
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-bold text-gray-800">
-                  {trans('modals.edit', 'title')}
+                  {trans("modals.edit", "title")}
                 </h3>
                 <button
                   onClick={() => setShowEditModal(false)}
@@ -606,36 +664,43 @@ const Provinces = () => {
                   <FaTimes className="text-lg" />
                 </button>
               </div>
-              
+
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {trans('modals.edit', 'label')}
+                    {trans("modals.edit", "label")}
                   </label>
                   <input
                     type="text"
                     value={editProvince.province_name}
-                    onChange={(e) => setEditProvince({...editProvince, province_name: e.target.value})}
+                    onChange={(e) =>
+                      setEditProvince({
+                        ...editProvince,
+                        province_name: e.target.value,
+                      })
+                    }
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
-                    placeholder={trans('modals.edit', 'placeholder')}
+                    placeholder={trans("modals.edit", "placeholder")}
                     autoFocus
                   />
                 </div>
               </div>
-              
-              <div className={`flex justify-${isRTL ? 'start' : 'end'} space-x-3 rtl:space-x-reverse mt-8`}>
+
+              <div
+                className={`flex justify-${isRTL ? "start" : "end"} space-x-3 rtl:space-x-reverse mt-8`}
+              >
                 <button
                   onClick={() => setShowEditModal(false)}
                   className="px-6 py-2.5 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
                 >
-                  {trans('buttons', 'cancel')}
+                  {trans("buttons", "cancel")}
                 </button>
                 <button
                   onClick={handleEditProvince}
                   className="px-6 py-2.5 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors flex items-center"
                 >
-                  <FaCheck className={`${isRTL ? 'ml-2' : 'mr-2'}`} /> 
-                  {trans('modals.edit', 'button')}
+                  <FaCheck className={`${isRTL ? "ml-2" : "mr-2"}`} />
+                  {trans("modals.edit", "button")}
                 </button>
               </div>
             </div>
@@ -650,7 +715,7 @@ const Provinces = () => {
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-bold text-gray-800">
-                  {trans('modals.delete', 'title')}
+                  {trans("modals.delete", "title")}
                 </h3>
                 <button
                   onClick={() => setShowDeleteModal(false)}
@@ -659,39 +724,49 @@ const Provinces = () => {
                   <FaTimes className="text-lg" />
                 </button>
               </div>
-              
+
               <div className="text-center">
                 <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <FaTrash className="text-red-600 text-2xl" />
                 </div>
-                
+
                 <h4 className="text-lg font-semibold text-gray-800 mb-2">
-                  {language === 'en' ? 'Delete' : language === 'ps' ? 'ړنګول' : 'حذف'} {selectedProvince.province_name}?
+                  {language === "en"
+                    ? "Delete"
+                    : language === "ps"
+                      ? "ړنګول"
+                      : "حذف"}{" "}
+                  {selectedProvince.province_name}?
                 </h4>
-                
+
                 <p className="text-gray-600 mb-6">
-                  {trans('modals.delete', 'confirm')}
+                  {trans("modals.delete", "confirm")}
                   {selectedProvince.total_deliveries > 0 && (
                     <span className="block text-red-600 font-medium mt-2">
-                      {trans('modals.delete', 'warning').replace('{count}', selectedProvince.total_deliveries)}
+                      {trans("modals.delete", "warning").replace(
+                        "{count}",
+                        selectedProvince.total_deliveries,
+                      )}
                     </span>
                   )}
                 </p>
               </div>
-              
-              <div className={`flex justify-${isRTL ? 'start' : 'end'} space-x-3 rtl:space-x-reverse mt-8`}>
+
+              <div
+                className={`flex justify-${isRTL ? "start" : "end"} space-x-3 rtl:space-x-reverse mt-8`}
+              >
                 <button
                   onClick={() => setShowDeleteModal(false)}
                   className="px-6 py-2.5 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
                 >
-                  {trans('buttons', 'cancel')}
+                  {trans("buttons", "cancel")}
                 </button>
                 <button
                   onClick={handleDeleteProvince}
                   className="px-6 py-2.5 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors flex items-center"
                 >
-                  <FaTrash className={`${isRTL ? 'ml-2' : 'mr-2'}`} /> 
-                  {trans('modals.delete', 'button')}
+                  <FaTrash className={`${isRTL ? "ml-2" : "mr-2"}`} />
+                  {trans("modals.delete", "button")}
                 </button>
               </div>
             </div>

@@ -4,17 +4,11 @@ import { useLanguage } from "../contexts/LanguageContext";
 import { Link, useNavigate } from "react-router-dom";
 import {
   FaSearch,
-  FaFilter,
   FaFileExport,
   FaTimes,
   FaEdit,
   FaEye,
   FaTruck,
-  FaUndo,
-  FaCalendarAlt,
-  FaMapMarkerAlt,
-  FaUser,
-  FaMoneyBillWave,
 } from "react-icons/fa";
 import { toast } from "react-toastify";
 
@@ -30,15 +24,22 @@ const DeliveriesList = () => {
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState(null);
 
+
+  const getTodayDate = () => {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, "0"); // month is 0-based
+    const dd = String(today.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  };
   // Filter states
   const [filters, setFilters] = useState({
     status: "",
     return_status: "",
     province_id: "",
     agent_id: "",
-    date_from: "",
-    date_to: "",
-    search: "",
+    date_from: getTodayDate(), // default today
+    date_to: getTodayDate(), // default today
   });
 
   // Load initial data
@@ -123,8 +124,8 @@ const DeliveriesList = () => {
       return_status: "",
       province_id: "",
       agent_id: "",
-      date_from: "",
-      date_to: "",
+        date_from: getTodayDate(),
+    date_to: getTodayDate(),
       search: "",
     });
   };
@@ -150,7 +151,7 @@ const DeliveriesList = () => {
 
     const rows = filteredDeliveries.map((d) => [
       d.delivery_id,
-     
+
       d.customer_name || "",
       d.province_name || "",
       d.agent_name || "",
@@ -199,8 +200,9 @@ const DeliveriesList = () => {
 
   const getStatusBadge = (status) => {
     const config = {
-      pending: "bg-yellow-100 text-yellow-800",
       in_transit: "bg-blue-100 text-blue-800",
+      pending: "bg-yellow-100 text-yellow-800",
+      rejected: "bg-red-100 text-red-800",
       delivered: "bg-green-100 text-green-800",
       cancelled: "bg-red-100 text-red-800",
     };
@@ -213,31 +215,51 @@ const DeliveriesList = () => {
     );
   };
 
-  const getReturnStatusBadge = (returnStatus) => {
+  const getReturnStatusBadge = (returnStatus, fee) => {
     if (!(!returnStatus || returnStatus === "none")) {
-
-  return (
-    <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-      Returned
-    </span>
-  );
-
-
-    } else{
-       return (
-         <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-           Noon
-         </span>
-       );
-
-      
+      return (
+        <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+          {fee}
+        </span>
+      );
+    } else {
+      return (
+        <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+          Noon
+        </span>
+      );
     }
-    
-   
   };
 
   const textAlign = isRTL ? "text-right" : "text-left";
+  const totals = filteredDeliveries.reduce(
+    (acc, d) => {
+      const amount = Number(d.total_amount) || 0;
+      const fees = Number(d.total_fess) || 0;
+      const commission = Number(d.total_commission) || 0;
+      const return_fee = Number(d.return_fee_charged) || 0;
 
+      // ✅ ALWAYS calculate return (for all statuses)
+      acc.totalReturn += return_fee;
+
+      // ✅ ONLY delivered for other totals
+      if (d.status === "delivered") {
+        acc.totalAmount += amount;
+        acc.totalFees += fees;
+        acc.totalCommission += commission;
+        acc.totalCustomer += amount - (fees + commission);
+      }
+
+      return acc;
+    },
+    {
+      totalReturn: 0,
+      totalAmount: 0,
+      totalFees: 0,
+      totalCommission: 0,
+      totalCustomer: 0,
+    },
+  );
   return (
     <div className="min-h-screen bg-gray-50 p-4" dir={isRTL ? "rtl" : "ltr"}>
       <div className="max-w-7xl mx-auto">
@@ -254,8 +276,6 @@ const DeliveriesList = () => {
             + New Delivery
           </Link>
         </div>
-
-        
 
         {/* Filter Bar */}
         <div className="bg-white rounded-lg shadow p-4 mb-4">
@@ -284,8 +304,10 @@ const DeliveriesList = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
               >
                 <option value="">All</option>
+
                 <option value="pending">Pending</option>
-                <option value="in_transit">In Transit</option>
+                <option value=" in_transit">Transit</option>
+                <option value="rejected">Rejected</option>
                 <option value="delivered">Delivered</option>
                 <option value="cancelled">Cancelled</option>
               </select>
@@ -304,7 +326,7 @@ const DeliveriesList = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
               >
                 <option value="">All</option>
-              
+
                 <option value="full_return">Return</option>
               </select>
             </div>
@@ -409,7 +431,7 @@ const DeliveriesList = () => {
                     >
                       ID
                     </th>
-                   
+
                     <th
                       className={`px-4 py-3 ${textAlign} font-medium text-gray-600`}
                     >
@@ -420,15 +442,32 @@ const DeliveriesList = () => {
                     >
                       Province
                     </th>
-                    <th
-                      className={`px-4 py-3 ${textAlign} font-medium text-gray-600`}
-                    >
-                      Agent
-                    </th>
+
                     <th
                       className={`px-4 py-3 ${textAlign} font-medium text-gray-600`}
                     >
                       Date
+                    </th>
+
+                    <th
+                      className={`px-4 py-3 ${textAlign} font-medium text-gray-600`}
+                    >
+                      agent
+                    </th>
+                    <th
+                      className={`px-4 py-3 ${textAlign} font-medium text-gray-600`}
+                    >
+                      customer
+                    </th>
+                    <th
+                      className={`px-4 py-3 ${textAlign} font-medium text-gray-600`}
+                    >
+                      fee
+                    </th>
+                    <th
+                      className={`px-4 py-3 ${textAlign} font-medium text-gray-600`}
+                    >
+                      Total
                     </th>
                     <th
                       className={`px-4 py-3 ${textAlign} font-medium text-gray-600`}
@@ -453,7 +492,7 @@ const DeliveriesList = () => {
                       <td className={`px-4 py-3 ${textAlign}`}>
                         #{delivery.delivery_id}
                       </td>
-                     
+
                       <td className={`px-4 py-3 ${textAlign}`}>
                         <div className="font-medium">
                           {delivery.customer_name}
@@ -467,17 +506,34 @@ const DeliveriesList = () => {
                       <td className={`px-4 py-3 ${textAlign}`}>
                         {delivery.province_name || "-"}
                       </td>
-                      <td className={`px-4 py-3 ${textAlign}`}>
-                        {delivery.agent_name || "-"}
-                      </td>
+
                       <td className={`px-4 py-3 ${textAlign}`}>
                         {formatDate(delivery.delivery_date)}
                       </td>
                       <td className={`px-4 py-3 ${textAlign}`}>
+                        {Number(delivery.total_commission || 0)}
+                      </td>
+                      <td className={`px-4 py-3 ${textAlign}`}>
+                        {Number(delivery.total_amount || 0) -
+                          (Number(delivery.total_fess || 0) +
+                            Number(delivery.total_commission || 0))}
+                      </td>
+                      <td className={`px-4 py-3 ${textAlign}`}>
+                        {Number(delivery.total_fess || 0)}
+                      </td>
+
+                      <td className={`px-4 py-3 ${textAlign}`}>
+                        {Number(delivery.total_amount || 0)}
+                      </td>
+
+                      <td className={`px-4 py-3 ${textAlign}`}>
                         {getStatusBadge(delivery.status)}
                       </td>
                       <td className={`px-4 py-3 ${textAlign}`}>
-                        {getReturnStatusBadge(delivery.return_status)}
+                        {getReturnStatusBadge(
+                          delivery.return_status,
+                          delivery.return_fee_charged,
+                        )}
                       </td>
                       <td className={`px-4 py-3 ${textAlign}`}>
                         <div className="flex items-center gap-2">
@@ -499,6 +555,39 @@ const DeliveriesList = () => {
                       </td>
                     </tr>
                   ))}
+                  <tr className="bg-gray-100 font-bold">
+                    <td colSpan="4" className={`px-4 py-3 ${textAlign}`}>
+                      Total
+                    </td>
+
+                    {/* Commission */}
+                    <td className={`px-4 py-3 ${textAlign}`}>
+                      {totals.totalCommission}
+                    </td>
+
+                    {/* Customer amount */}
+                    <td className={`px-4 py-3 ${textAlign}`}>
+                      {totals.totalCustomer}
+                    </td>
+
+                    {/* Fees */}
+                    <td className={`px-4 py-3 ${textAlign}`}>
+                      {totals.totalFees}
+                    </td>
+
+                    {/* Total amount */}
+                    <td className={`px-4 py-3 ${textAlign}`}>
+                      {totals.totalAmount}
+                    </td>
+                    {/* Total amount */}
+                    <td className={`px-4 py-3 ${textAlign}`}></td>
+                    {/* Total amount */}
+                    <td className={`px-4 py-3 ${textAlign}`}>
+                      {totals.totalReturn}
+                    </td>
+
+                    <td colSpan="3"></td>
+                  </tr>
                 </tbody>
               </table>
             </div>

@@ -23,7 +23,10 @@ const createCustomerHandlers = require("./src/handlers/customerHandlers");
 const createDeliveryHandlers = require("./src/handlers/deliveryHandlers");
 // Import the financial handlers
 const createfinancialHandlers = require('./src/handlers/financialHandlers');
+const createExpenseHandlers = require("./src/handlers/expenseHandlers");
 
+// After creating other handlers
+const expenseHandlers = createExpenseHandlers(db);
 const provinceHandlers = createProvinceHandlers(db);
 const dashboardHandlers = createdashboardHandlers(db);
 const agentHandlers = createAgentHandlers(db);
@@ -65,12 +68,12 @@ function createWindow() {
 
  if (isDev) {
    win.loadURL("http://localhost:5173");
-   win.webContents.openDevTools();
+  //  win.webContents.openDevTools();
  } else {
    const indexPath = path.join(__dirname, "dist", "index.html");
    console.log("Loading:", indexPath);
    win.loadFile(indexPath);
-   win.webContents.openDevTools(); // keep for now (debug)
+  //  win.webContents.openDevTools(); // keep for now (debug)
  }
 }
 
@@ -299,6 +302,103 @@ ipcMain.handle("restore-database", async (event) => {
 });
 
 
+
+
+
+
+
+
+
+
+/// this is for expense 
+ipcMain.handle("get-expenses", async (event, startDate, endDate) => {
+  return await expenseHandlers.getExpenses(startDate, endDate);
+});
+
+ipcMain.handle("get-expense", async (event, expenseId) => {
+  return await expenseHandlers.getExpense(expenseId);
+});
+
+ipcMain.handle("add-expense", async (event, expenseData) => {
+  return await expenseHandlers.addExpense(expenseData);
+});
+
+ipcMain.handle("update-expense", async (event, expenseData) => {
+  return await expenseHandlers.updateExpense(expenseData);
+});
+
+ipcMain.handle("delete-expense", async (event, expenseId) => {
+  return await expenseHandlers.deleteExpense(expenseId);
+});
+
+ipcMain.handle("search-expenses", async (event, searchTerm) => {
+  return await expenseHandlers.searchExpenses(searchTerm);
+});
+
+ipcMain.handle(
+  "get-expenses-by-date-range",
+  async (event, startDate, endDate) => {
+    return await expenseHandlers.getExpensesByDateRange(startDate, endDate);
+  },
+);
+
+ipcMain.handle("get-expense-stats", async (event, startDate, endDate) => {
+  return await expenseHandlers.getExpenseStats(startDate, endDate);
+});
+
+
+// Agent payments
+ipcMain.handle('add-agent-payment', async (event, paymentData) => {
+  return await provinceHandlers.addAgentPayment(paymentData);
+});
+ipcMain.handle('get-agent-payments-by-province', async (event, provinceId) => {
+  return await provinceHandlers.getAgentPaymentsByProvince(provinceId);
+});
+ipcMain.handle('get-agent-payments-by-agent', async (event, agentId) => {
+  return await provinceHandlers.getAgentPaymentsByAgent(agentId);
+});
+ipcMain.handle('update-agent-payment', async (event, paymentId, paymentData) => {
+  return await provinceHandlers.updateAgentPayment(paymentId, paymentData);
+});
+ipcMain.handle('delete-agent-payment', async (event, paymentId) => {
+  return await provinceHandlers.deleteAgentPayment(paymentId);
+});
+ipcMain.handle('get-province-financial-summary', async (event, provinceId) => {
+  return await provinceHandlers.getProvinceFinancialSummary(provinceId);
+});
+
+
+// ipcMain.on("print-page", (event) => {
+//   const win = BrowserWindow.getFocusedWindow();
+//   win.webContents.print({
+//     silent: false,
+//     printBackground: true,
+//   });
+// });
+
+ipcMain.on("print-page", (event) => {
+  console.log("Print-page IPC received");
+  const win = BrowserWindow.getFocusedWindow();
+  if (!win) {
+    console.error("No focused window");
+    return;
+  }
+  try {
+   
+    win.webContents.print(
+      { silent: false, printBackground: true },
+      (success, errorType) => {
+        if (!success) {
+          console.error("Print failed:", errorType);
+        } else {
+          console.log("Print initiated successfully");
+        }
+      },
+    );
+  } catch (err) {
+    console.error("Exception in print:", err);
+  }
+});
 
 
 app.on("window-all-closed", () => {

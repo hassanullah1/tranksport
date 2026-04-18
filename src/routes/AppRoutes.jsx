@@ -16,6 +16,8 @@ import AgentDeliveriesList from "../components/deliveries/AgentDeliveriesList";
 import BillDetails from "../components/deliveries/BillDetails";
 import FinancialReport from "../pages/FinancialReport";
 import Settings from "../pages/Setting";
+import Expenses from "../pages/Expenses";
+import ProvinceDetail from "../pages/ProvinceDetail";
 
 // import Financial from "../pages/Financial";
 // import Reports from "../pages/Reports";
@@ -26,6 +28,7 @@ const AppRoutes = () => {
     <Routes>
       <Route path="/" element={<Dashboard />} />
       <Route path="/provinces" element={<Provinces />} />
+      <Route path="/expenses" element={<Expenses />} />
       <Route path="/agents" element={<Agents />} />
       <Route path="/deliveries" element={<DeliveriesList />} />
 
@@ -39,7 +42,7 @@ const AppRoutes = () => {
         path="/deliveries/agent/:agentId"
         element={<AgentDeliveriesList />}
       />
-
+      <Route path="/province/:provinceId" element={<ProvinceDetail />} />
       <Route path="/deliveries/bills/:billId" element={<BillDetails />} />
 
       <Route path="/financial" element={<FinancialReport />} />

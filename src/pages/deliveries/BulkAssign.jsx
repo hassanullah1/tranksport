@@ -289,23 +289,28 @@ const BulkAssign = () => {
   const { isRTL, language } = useLanguage();
   const { trans } = useTranslations();
 
-
   const [provinces, setProvinces] = useState([]);
   const [agents, setAgents] = useState([]);
   const [pendingDeliveries, setPendingDeliveries] = useState([]);
   const [selectedDeliveries, setSelectedDeliveries] = useState([]);
-  const [selectedProvince, setSelectedProvince] = useState('');
-  const [selectedAgent, setSelectedAgent] = useState('');
-  const [commission, setCommission] = useState('');
+  const [selectedProvince, setSelectedProvince] = useState("");
+  const [selectedAgent, setSelectedAgent] = useState("");
+  const [commission, setCommission] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [loadingDeliveries, setLoadingDeliveries] = useState(false);
-  const selectedAgentData = agents.find((a) => a.agent_id === selectedAgent);
 
+  // Filter agents based on selected province
+  const filteredAgents = selectedProvince
+    ? agents.filter((a) => String(a.province_id) === String(selectedProvince))
+    : [];
+
+  const selectedAgentData = filteredAgents.find(
+    (a) => a.agent_id === selectedAgent,
+  );
   const selectedAgentName = selectedAgentData
     ? selectedAgentData.agent_name
     : "";
-
 
   // Load provinces and agents
   useEffect(() => {
@@ -320,8 +325,24 @@ const BulkAssign = () => {
 
   const loadAgents = async () => {
     const data = await window.electronAPI.getAgents();
+    console.log("All agents:", data);
     setAgents(data || []);
   };
+
+  // Auto-select first agent when province changes and agents are filtered
+  useEffect(() => {
+    if (selectedProvince && filteredAgents.length > 0) {
+      // Auto-select the first agent for this province
+      setSelectedAgent(filteredAgents[0].agent_id);
+      toast.success(`Auto-selected agent: ${filteredAgents[0].agent_name}`);
+    } else if (selectedProvince && filteredAgents.length === 0) {
+      // No agents for this province
+      setSelectedAgent("");
+      toast.info(
+        `No agents found for this province. Please add an agent first.`,
+      );
+    }
+  }, [selectedProvince, filteredAgents]);
 
   // Fetch deliveries when province changes
   useEffect(() => {
@@ -330,18 +351,22 @@ const BulkAssign = () => {
     } else {
       setPendingDeliveries([]);
       setSelectedDeliveries([]);
+      setSelectedAgent("");
     }
   }, [selectedProvince]);
 
   const fetchPendingDeliveries = async () => {
     setLoadingDeliveries(true);
     try {
-      const data = await window.electronAPI.getPendingDeliveriesByProvince(selectedProvince);
+      const data =
+        await window.electronAPI.getPendingDeliveriesByProvince(
+          selectedProvince,
+        );
       setPendingDeliveries(data);
-      console.log(data);
+      console.log("Pending deliveries:", data);
       setSelectedDeliveries([]);
     } catch {
-      toast.error(trans('deliveries', 'condition') + ' load failed');
+      toast.error(trans("deliveries", "condition") + " load failed");
     } finally {
       setLoadingDeliveries(false);
     }
@@ -351,7 +376,7 @@ const BulkAssign = () => {
     setSelectedDeliveries((prev) =>
       prev.includes(deliveryId)
         ? prev.filter((id) => id !== deliveryId)
-        : [...prev, deliveryId]
+        : [...prev, deliveryId],
     );
   };
 
@@ -365,11 +390,11 @@ const BulkAssign = () => {
 
   const handleAssign = async () => {
     if (!selectedAgent) {
-      toast.error(trans('deliveries', 'agent') + ' required');
+      toast.error("Please select an agent first");
       return;
     }
     if (selectedDeliveries.length === 0) {
-      toast.error(trans('deliveries', 'tracking') + ' required');
+      toast.error("Please select at least one delivery");
       return;
     }
     setLoading(true);
@@ -378,43 +403,35 @@ const BulkAssign = () => {
         agentId: selectedAgent,
         deliveryIds: selectedDeliveries,
         commissionAmount: parseFloat(commission) || 0,
-        assignedDate: new Date().toISOString().split('T')[0],
+        assignedDate: new Date().toISOString().split("T")[0],
       });
       toast.success(result.message);
       fetchPendingDeliveries();
     } catch (error) {
-      toast.error(error.message || trans('return', 'reason'));
+      toast.error(error.message || "Assignment failed");
     } finally {
       setLoading(false);
     }
   };
-
- 
-
-  // Selection summary
-  const selectedDeliveriesData = pendingDeliveries.filter((d) =>
-    selectedDeliveries.includes(d.delivery_id)
-  );
-  const selectedTotalValue = selectedDeliveriesData.reduce(
-    (sum, d) => sum + (parseFloat(d.total_value) || 0),
-    0
-  );
-  const selectedCount = selectedDeliveries.length;
 
   // Options for autocompletes
   const provinceOptions = provinces.map((p) => ({
     id: p.province_id,
     label: p.province_name,
   }));
-  const agentOptions = agents.map((a) => ({
+
+  // Only show agents for the selected province
+  const agentOptions = filteredAgents.map((a) => ({
     id: a.agent_id,
     label: `${a.agent_name} — ${a.phone}`,
   }));
 
+  const selectedCount = selectedDeliveries.length;
+
   return (
     <div className="min-h-screen p-4 md:p-6" dir={isRTL ? "rtl" : "ltr"}>
       <div className="max-w-7xl mx-auto">
-        {/* 🎯 Top Card – Province, Agent, Commission */}
+        {/* Top Card – Province and Agent */}
         <div className="bg-white/70 backdrop-blur-md rounded-3xl shadow-md p-2 mb-3 border border-white/50">
           <div className="flex flex-col md:flex-row items-end gap-4">
             <div className="flex-1 min-w-0 z-50">
@@ -428,18 +445,38 @@ const BulkAssign = () => {
                 color="blue"
               />
             </div>
-            <div className="flex-1 min-w-0  z-50">
-              <AutocompleteSelect
-                id="agent-select"
-                value={selectedAgent}
-                items={agentOptions}
-                onChange={setSelectedAgent}
-                placeholder={trans("deliveries", "agent")}
-                icon={FaUserTie}
-                color="pink"
-              />
+            <div className="flex-1 min-w-0 z-50">
+              {selectedProvince && filteredAgents.length > 0 ? (
+                <div className="flex items-center px-4 py-3 bg-gray-50 rounded-2xl border border-gray-200">
+                  <FaUserTie className="text-pink-400 ml-2 mr-2" size={18} />
+                  <span className="text-gray-700 text-sm font-medium">
+                    {selectedAgentName || "Select an agent"}
+                  </span>
+                  {selectedAgent && (
+                    <button
+                      onClick={() => setSelectedAgent("")}
+                      className="mr-2 text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100"
+                      title="Clear selection"
+                    >
+                      <FaTimes size={14} />
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="flex items-center px-4 py-3 bg-gray-50 rounded-2xl border border-gray-200">
+                  <FaUserTie className="text-pink-400 ml-2 mr-2" size={18} />
+                  <span className="text-gray-500 text-sm">
+                    {!selectedProvince
+                      ? "Select province first"
+                      : filteredAgents.length === 0
+                        ? "No agents available"
+                        : "No agent selected"}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
+         
         </div>
 
         {selectedProvince ? (
@@ -452,7 +489,7 @@ const BulkAssign = () => {
                 </div>
                 <h2 className="text-lg font-semibold text-gray-800">
                   {trans("deliveries", "condition")}
-                  {selectedAgentName}
+                  {selectedAgentName && ` - ${selectedAgentName}`}
                 </h2>
               </div>
               {pendingDeliveries.length > 0 && (
@@ -478,23 +515,25 @@ const BulkAssign = () => {
                   <FaSmileWink className="text-blue-400 text-4xl" />
                 </div>
                 <p className="text-gray-600 text-lg font-medium">
-                  {trans("pagination", "entries")} 0
+                  No pending deliveries
                 </p>
                 <p className="text-gray-400 text-sm mt-1">
-                  🌍 {trans("deliveries", "province")}
+                  for{" "}
+                  {
+                    provinces.find(
+                      (p) => String(p.province_id) === String(selectedProvince),
+                    )?.province_name
+                  }
                 </p>
               </div>
             ) : (
               <>
-                {/* ---------- 📋 RTL‑aware Delivery Table ---------- */}
+                {/* Table */}
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
-                        {/* Checkmark column – no text, no alignment issue */}
                         <th scope="col" className="px-4 py-3 w-10"></th>
-
-                        {/* Text columns – align based on direction */}
                         <th
                           scope="col"
                           className={`px-4 py-3 ${isRTL ? "text-right" : "text-left"} text-xs font-medium text-gray-500 uppercase tracking-wider`}
@@ -513,8 +552,6 @@ const BulkAssign = () => {
                         >
                           {trans("deliveries", "date")}
                         </th>
-
-                        {/* Numeric columns – always right‑aligned */}
                         <th
                           scope="col"
                           className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
@@ -531,11 +568,8 @@ const BulkAssign = () => {
                         return (
                           <tr
                             key={delivery.delivery_id}
-                            className={`hover:bg-blue-50/30 transition ${
-                              isSelected ? "bg-pink-50" : ""
-                            }`}
+                            className={`hover:bg-blue-50/30 transition ${isSelected ? "bg-pink-50" : ""}`}
                           >
-                            {/* Checkbox – stays at the visual start (right in RTL) */}
                             <td className="px-4 py-3 whitespace-nowrap">
                               <button
                                 onClick={() =>
@@ -550,26 +584,18 @@ const BulkAssign = () => {
                                 )}
                               </button>
                             </td>
-
-                            {/* Text data – align with header */}
                             <td
-                              className={`px-4 py-3 whitespace-nowrap text-sm font-mono text-gray-800 ${
-                                isRTL ? "text-right" : "text-left"
-                              }`}
+                              className={`px-4 py-3 whitespace-nowrap text-sm font-mono text-gray-800 ${isRTL ? "text-right" : "text-left"}`}
                             >
                               #{delivery.delivery_id}
                             </td>
                             <td
-                              className={`px-4 py-3 whitespace-nowrap text-sm text-gray-700 ${
-                                isRTL ? "text-right" : "text-left"
-                              }`}
+                              className={`px-4 py-3 whitespace-nowrap text-sm text-gray-700 ${isRTL ? "text-right" : "text-left"}`}
                             >
                               {delivery.customer_name || "N/A"}
                             </td>
                             <td
-                              className={`px-4 py-3 whitespace-nowrap text-sm text-gray-700 ${
-                                isRTL ? "text-right" : "text-left"
-                              }`}
+                              className={`px-4 py-3 whitespace-nowrap text-sm text-gray-700 ${isRTL ? "text-right" : "text-left"}`}
                             >
                               {delivery.delivery_date
                                 ? new Date(
@@ -577,8 +603,6 @@ const BulkAssign = () => {
                                   ).toLocaleDateString()
                                 : "N/A"}
                             </td>
-
-                            {/* Numeric – always right‑aligned */}
                             <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700 text-right">
                               <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs">
                                 {delivery.total_items || 0}
@@ -595,7 +619,9 @@ const BulkAssign = () => {
                   <div className="flex gap-3">
                     <button
                       onClick={handleAssign}
-                      disabled={loading || selectedCount === 0}
+                      disabled={
+                        loading || selectedCount === 0 || !selectedAgent
+                      }
                       className="flex items-center bg-gradient-to-r from-blue-500 to-pink-500 hover:from-blue-600 hover:to-pink-600 text-white font-medium py-3 px-6 rounded-2xl shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition transform hover:scale-105 active:scale-95"
                     >
                       {loading ? (
@@ -613,12 +639,12 @@ const BulkAssign = () => {
             )}
           </div>
         ) : (
-          <div className="  rounded-3xl shadow-md p-12 text-center  ">
+          <div className="rounded-3xl shadow-md p-12 text-center">
             <div className="bg-gradient-to-br from-blue-100 to-pink-100 inline-flex p-5 rounded-full mb-4">
               <FaMapMarkerAlt className="text-blue-500 text-5xl" />
             </div>
             <h3 className="text-xl font-semibold text-gray-700 mb-2">
-              {trans("deliveries", "province")}
+              Please select a province first
             </h3>
           </div>
         )}

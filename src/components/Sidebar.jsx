@@ -1,4 +1,5 @@
 import React from "react";
+import logo from "./log.jpeg";
 import { NavLink, useLocation } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
 import {
@@ -10,7 +11,8 @@ import {
   FaMoneyBillWave,
   FaCog,
   FaSignOutAlt,
-  FaTimes
+  FaTimes,
+  FaCoins,
 } from "react-icons/fa";
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
@@ -18,13 +20,14 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   const location = useLocation();
 
   const menuItems = [
-    { path: "/", icon: FaTachometerAlt, label: t('menu.dashboard') },
-    { path: "/deliveries", icon: FaTruck, label: t('menu.deliveries') },
-    { path: "/agents", icon: FaUserTie, label: t('menu.agents') },
-    { path: "/provinces", icon: FaMapMarkerAlt, label: t('menu.provinces') },
-    { path: "/financial", icon: FaMoneyBillWave, label: t('menu.financial') },
-   
-    { path: "/settings", icon: FaCog, label: t('menu.settings') },
+    { path: "/", icon: FaTachometerAlt, label: t("menu.dashboard") },
+    { path: "/deliveries", icon: FaTruck, label: t("menu.deliveries") },
+    { path: "/agents", icon: FaUserTie, label: t("menu.agents") },
+    { path: "/provinces", icon: FaMapMarkerAlt, label: t("menu.provinces") },
+
+    { path: "/financial", icon: FaMoneyBillWave, label: t("menu.reports") },
+    { path: "/expenses", icon: FaCoins, label: t("menu.expenses") },
+    { path: "/settings", icon: FaCog, label: t("menu.settings") },
   ];
 
   const isActive = (path) => {
@@ -42,12 +45,13 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         <div className="p-6 ">
           <div className="flex items-center space-x-3 rtl:space-x-reverse">
             <div className="w-12 h-12 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full flex items-center justify-center">
-             <img src="/log.jpeg" alt="Logo" className="w-12 rounded-full h-12" />
-
+              <img src={logo} alt="Logo" className="w-12 h-12 rounded-full" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-gray-800">{t('app.title')}</h1>
-              <p className="text-xs text-gray-500">{t('app.subtitle')}</p>
+              <h1 className="text-lg font-bold text-gray-800">
+                {t("app.title")}
+              </h1>
+              <p className="text-xs text-gray-500">{t("app.subtitle")}</p>
             </div>
           </div>
         </div>
@@ -61,8 +65,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               className={({ isActive }) =>
                 `flex items-center space-x-3 rtl:space-x-reverse px-4 py-3 rounded-lg transition-all duration-200 ${
                   isActive
-                    ? 'bg-gradient-to-r from-primary-500 to-secondary-500 text-white shadow-lg'
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-primary-600'
+                    ? "bg-gradient-to-r from-primary-500 to-secondary-500 text-white shadow-lg"
+                    : "text-gray-700 hover:bg-gray-100 hover:text-primary-600"
                 }`
               }
               onClick={() => setIsOpen(false)}
@@ -77,7 +81,6 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         <div className="p-4 border-t border-gray-200">
           <button className="flex items-center space-x-3 rtl:space-x-reverse w-full px-4 py-3 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors">
             <FaSignOutAlt />
- 
           </button>
         </div>
       </aside>
@@ -85,7 +88,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       {/* Mobile Sidebar */}
       <aside
         className={`md:hidden fixed inset-y-0 left-0 z-30 w-64 bg-white transform transition-transform duration-300 ease-in-out ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
+          isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         {/* Mobile Header */}
@@ -95,8 +98,9 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               <FaTruck className="text-white text-xl" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-gray-800">{t('app.title')}</h1>
-             
+              <h1 className="text-lg font-bold text-gray-800">
+                {t("app.title")}
+              </h1>
             </div>
           </div>
           <button
@@ -116,8 +120,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               className={({ isActive }) =>
                 `flex items-center space-x-3 rtl:space-x-reverse px-4 py-3 rounded-lg transition-all duration-200 ${
                   isActive
-                    ? 'bg-gradient-to-r from-primary-500 to-secondary-500 text-white shadow-lg'
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-primary-600'
+                    ? "bg-gradient-to-r from-primary-500 to-secondary-500 text-white shadow-lg"
+                    : "text-gray-700 hover:bg-gray-100 hover:text-primary-600"
                 }`
               }
               onClick={() => setIsOpen(false)}
@@ -129,9 +133,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         </nav>
 
         {/* Mobile Logout */}
-        <div className="absolute bottom-0 w-full p-4 border-t border-gray-200">
-         
-        </div>
+        <div className="absolute bottom-0 w-full p-4 border-t border-gray-200"></div>
       </aside>
     </>
   );

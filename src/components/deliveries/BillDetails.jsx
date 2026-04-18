@@ -23,10 +23,11 @@ import {
   FaDollarSign,
   FaPhone,
   FaEnvelope,
-  FaMapMarkerAlt
+  FaMapMarkerAlt,
+  FaTimes,
 } from "react-icons/fa";
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import BillPrintView from "./BillPrintView";
 
 const BillDetails = () => {
@@ -48,11 +49,11 @@ const BillDetails = () => {
     return_reason: "refused",
     return_fee: 0,
     handling_fee: 0,
-    notes: ""
+    notes: "",
   });
 
-  // ---------- Print ref ----------
-  const printRef = useRef();
+  // ---------- Print modal state ----------
+  const [showPrintModal, setShowPrintModal] = useState(false);
 
   // ---------- Load Bill Data ----------
   useEffect(() => {
@@ -65,22 +66,19 @@ const BillDetails = () => {
 
       const data = await window.electronAPI.getBillDetails(billId);
 
-      // 🔥 Add delivery + customer info to each item
+      // Add delivery + customer info to each item
       const updatedDeliveries = data.deliveries.map((delivery) => ({
         ...delivery,
         items: delivery.items.map((item) => ({
           ...item,
 
-          // attach delivery info
           delivery_date: delivery.delivery_date,
           delivery_status: delivery.delivery_status,
 
-          // attach customer info
           customer_name: delivery.customer_name,
           customer_phone: delivery.customer_phone,
           province_name: delivery.province_name,
 
-          // attach assignment info
           assignment_id: delivery.assignment_id,
           assignment_status: delivery.assignment_status,
           assigned_date: delivery.assigned_date,
@@ -101,20 +99,12 @@ const BillDetails = () => {
     }
   };
 
-
-  // ---------- Delivery Actions ----------
-  const handlePrintInvoice = async (deliveryId) => {
-    try {
-      await window.electronAPI.generateInvoice(deliveryId);
-      toast.success("Invoice generated successfully");
-    } catch (error) {
-      toast.error("Failed to generate invoice");
-    }
-  };
-
   const handleStatusChange = async (deliveryId, newStatus) => {
     try {
-      const result = await window.electronAPI.updateDeliveryStatus(deliveryId, newStatus);
+      const result = await window.electronAPI.updateDeliveryStatus(
+        deliveryId,
+        newStatus,
+      );
       toast.success(result.message || `Status changed to ${newStatus}`);
       loadBill();
     } catch (error) {
@@ -125,7 +115,9 @@ const BillDetails = () => {
   const handleDeleteDelivery = async () => {
     if (!selectedDelivery) return;
     try {
-      const result = await window.electronAPI.deleteDelivery(selectedDelivery.delivery_id);
+      const result = await window.electronAPI.deleteDelivery(
+        selectedDelivery.delivery_id,
+      );
       toast.success(result.message);
       setShowDeleteModal(false);
       setSelectedDelivery(null);
@@ -140,7 +132,7 @@ const BillDetails = () => {
     try {
       const returnData = {
         delivery_id: selectedDelivery.delivery_id,
-        ...returnForm
+        ...returnForm,
       };
       const result = await window.electronAPI.recordDeliveryReturn(returnData);
       toast.success(result.message || "Return recorded successfully");
@@ -151,7 +143,7 @@ const BillDetails = () => {
         return_reason: "refused",
         return_fee: 0,
         handling_fee: 0,
-        notes: ""
+        notes: "",
       });
       loadBill();
     } catch (error) {
@@ -168,12 +160,12 @@ const BillDetails = () => {
   // ---------- Close dropdowns on outside click ----------
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (!event.target.closest('.actions-dropdown')) {
+      if (!event.target.closest(".actions-dropdown")) {
         setExpandedActions(null);
       }
     };
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
   // ---------- Status Badge (clickable) ----------
@@ -182,24 +174,54 @@ const BillDetails = () => {
     const statusMap = {
       pending: {
         color: "bg-yellow-50 text-yellow-700 border border-yellow-200",
-        text: language === 'en' ? "Pending" : language === 'ps' ? "په تمه" : "در انتظار",
-        icon: <FaClock className="mr-1 rtl:ml-1 rtl:mr-0 text-xs" />
+        text:
+          language === "en"
+            ? "Pending"
+            : language === "ps"
+              ? "په تمه"
+              : "در انتظار",
+        icon: <FaClock className="mr-1 rtl:ml-1 rtl:mr-0 text-xs" />,
       },
       in_transit: {
         color: "bg-blue-50 text-blue-700 border border-blue-200",
-        text: language === 'en' ? "In Transit" : language === 'ps' ? "په لاره کې" : "در حال انتقال",
-        icon: <FaShippingFast className="mr-1 rtl:ml-1 rtl:mr-0 text-xs" />
+        text:
+          language === "en"
+            ? "In Transit"
+            : language === "ps"
+              ? "په لاره کې"
+              : "در حال انتقال",
+        icon: <FaShippingFast className="mr-1 rtl:ml-1 rtl:mr-0 text-xs" />,
       },
       delivered: {
         color: "bg-green-50 text-green-700 border border-green-200",
-        text: language === 'en' ? "Delivered" : language === 'ps' ? "تحویل شوی" : "تحویل شده",
-        icon: <FaCheckCircle className="mr-1 rtl:ml-1 rtl:mr-0 text-xs" />
+        text:
+          language === "en"
+            ? "Delivered"
+            : language === "ps"
+              ? "تحویل شوی"
+              : "تحویل شده",
+        icon: <FaCheckCircle className="mr-1 rtl:ml-1 rtl:mr-0 text-xs" />,
       },
       cancelled: {
         color: "bg-red-50 text-red-700 border border-red-200",
-        text: language === 'en' ? "Cancelled" : language === 'ps' ? "لغوه شوی" : "لغو شده",
-        icon: <FaBan className="mr-1 rtl:ml-1 rtl:mr-0 text-xs" />
-      }
+        text:
+          language === "en"
+            ? "Cancelled"
+            : language === "ps"
+              ? "لغوه شوی"
+              : "لغو شده",
+        icon: <FaBan className="mr-1 rtl:ml-1 rtl:mr-0 text-xs" />,
+      },
+      rejected: {
+        color: "bg-red-100 text-red-900 border border-red-300",
+        text:
+          language === "en"
+            ? "Rejected"
+            : language === "ps"
+              ? "رد شوی"
+              : "رد شده",
+        icon: <FaBan className="mr-1 rtl:ml-1 rtl:mr-0 text-xs" />,
+      },
     };
     const statusInfo = statusMap[status] || statusMap.pending;
     return (
@@ -211,9 +233,13 @@ const BillDetails = () => {
           setShowStatusChangeModal(true);
         }}
         className={`px-2 py-1 text-xs font-medium rounded-full ${statusInfo.color} flex items-center whitespace-nowrap hover:opacity-90 transition-opacity cursor-pointer`}
-        title={language === 'en' ? "Click to change status" : 
-               language === 'ps' ? "حالت بدلولو لپاره کلیک وکړئ" : 
-               "برای تغییر وضعیت کلیک کنید"}
+        title={
+          language === "en"
+            ? "Click to change status"
+            : language === "ps"
+              ? "حالت بدلولو لپاره کلیک وکړئ"
+              : "برای تغییر وضعیت کلیک کنید"
+        }
       >
         {statusInfo.icon}
         {statusInfo.text}
@@ -221,19 +247,8 @@ const BillDetails = () => {
     );
   };
 
-  // ---------- Helper: status label for dropdown ----------
-  const getStatusLabel = (status) => {
-    const statusMap = {
-      pending: language === 'en' ? "Pending" : language === 'ps' ? "په تمه" : "در انتظار",
-      in_transit: language === 'en' ? "In Transit" : language === 'ps' ? "په لاره کې" : "در حال انتقال",
-      delivered: language === 'en' ? "Delivered" : language === 'ps' ? "تحویل شوی" : "تحویل شده",
-      cancelled: language === 'en' ? "Cancelled" : language === 'ps' ? "لغوه شوی" : "لغو شده"
-    };
-    return statusMap[status] || status;
-  };
-
   // ---------- RTL alignment helper ----------
-  const alignClass = isRTL ? 'text-right' : 'text-left';
+  const alignClass = isRTL ? "text-right" : "text-left";
 
   // ---------- Translations ----------
   const t = {
@@ -250,7 +265,7 @@ const BillDetails = () => {
       totalProfit: "Total Profit",
       totalItems: "Total Items",
       tracking: "code",
-     
+
       Name: "Name",
       total: "Price",
       arrive: "Arrive",
@@ -297,7 +312,7 @@ const BillDetails = () => {
     ps: {
       back: "بیلونو ته ستون",
       billNumber: "بل نمبر",
-      agent: "اجنټ",
+      agent: "نماینده",
       date: "نیټه",
       created: "جوړ شوی",
       deliveries: "په دې بل کې لیږدونه",
@@ -410,122 +425,10 @@ const BillDetails = () => {
 
   const trans = (key) => t[language]?.[key] || t.en[key] || key;
 
-  // ---------- Print Bill Handler (Preview with print button) ----------
- const handlePrintBill = () => {
-  const printContent = printRef.current;
-  if (!printContent) return;
-
-  const printWindow = window.open('', '_blank');
-  if (!printWindow) {
-    toast.error("Please allow pop-ups to preview");
-    return;
-  }
-
-  printWindow.document.write(`
-    <!DOCTYPE html>
-    <html dir="${isRTL ? 'rtl' : 'ltr'}">
-      <head>
-        <title>Bill #${bill.bill_id} - Rasa Transfer</title>
-        <meta charset="utf-8">
-        <script src="https://cdn.tailwindcss.com"></script>
-        <style>
-          @import url('https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/font-face.css');
-
-          @page { size: A4; margin: 1.5cm; }
-          body {
-            font-family: 'Vazir', 'Noto Nastaliq Urdu', 'Tahoma', 'Arial', sans-serif;
-            background: white;
-            color: #1e293b;
-            line-height: 1.6;
-            padding: 0;
-            margin: 0;
-          }
-          .print-header {
-            background: linear-gradient(145deg, #f8fafc 0%, #f1f5f9 100%);
-            border-radius: 20px;
-            padding: 24px 28px;
-            margin-bottom: 28px;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 8px 20px -6px rgba(0,0,0,0.1);
-          }
-          .logo-container {
-            width: 80px; height: 80px;
-            background: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid #2563eb;
-            box-shadow: 0 4px 10px rgba(37,99,235,0.15);
-          }
-          .company-name-pashto {
-            font-size: 28px; font-weight: 800; color: #0f172a; line-height: 1.2;
-            font-family: 'Vazir', 'Noto Nastaliq Urdu', sans-serif;
-          }
-          .company-name-english {
-            font-size: 16px; font-weight: 400; color: #475569;
-            letter-spacing: 0.3px; margin-top: 4px;
-          }
-          .mobile-number {
-            font-size: 18px; font-weight: 600; color: #2563eb;
-            background: #dbeafe; display: inline-block; padding: 4px 16px;
-            border-radius: 40px; margin-bottom: 8px; border: 1px solid #bfdbfe;
-          }
-          .address-line {
-            border-top: 1px dashed #cbd5e1; padding-top: 14px; margin-top: 16px; color: #64748b;
-          }
-          .separator {
-            border: none; border-top: 2px dashed #cbd5e1; margin: 6px 0;
-          }
-          .bill-info {
-            display: flex; justify-content: space-between;
-            background: #f8fafc; padding: 5px 20px; border-radius: 12px;
-            margin-bottom: 24px; font-weight: 600; font-size: 15px;
-            border: 1px solid #e2e8f0;
-          }
-          .agent-info {
-            background: #f1f5f9; padding: 16px 20px; border-radius: 12px;
-            margin-bottom: 24px; border: 1px solid #e2e8f0;
-          }
-          table { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 14px; }
-          th {
-            background: #f1f5f9; font-weight: 600; padding: 12px 8px;
-            border: 1px solid #cbd5e1; color: #334155;
-          }
-          td { padding: 10px 8px; border: 1px solid #cbd5e1; color: #1e293b; }
-          .summary {
-            margin-top: 28px; display: flex; justify-content: flex-end; gap: 32px;
-            font-size: 16px; font-weight: 600; border-top: 2px dashed #94a3b8;
-            padding-top: 20px;
-          }
-          .signature {
-            margin-top: 40px; display: flex; justify-content: flex-end;
-            font-size: 15px; border-top: 1px dashed #94a3b8; padding-top: 24px;
-            color: #475569;
-          }
-          .address {
-            margin-top: 40px; font-size: 13px; color: #64748b; text-align: center;
-            border-top: 1px solid #e2e8f0; padding-top: 20px;
-          }
-          .no-print { display: none; }
-          @media print { .no-print { display: none; } }
-        </style>
-      </head>
-      <body>
-        <div class="no-print" style="text-align: center; margin-bottom: 20px; padding: 15px; background: #f0f0f0; border-radius: 6px;">
-          <button onclick="window.print();" style="padding: 10px 24px; font-size: 16px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            🖨️ ${trans('printBill')}
-          </button>
-          <p style="margin-top: 8px; font-size: 14px; color: #555;">${isRTL ? 'یا از Ctrl+P استفاده کنید' : 'Or use Ctrl+P (Cmd+P)'}</p>
-        </div>
-        ${printContent.innerHTML}
-      </body>
-    </html>
-  `);
-
-  printWindow.document.close();
-  printWindow.focus();
-};
+  // ---------- Print Bill Handler (opens modal) ----------
+  const handlePrintBill = () => {
+    setShowPrintModal(true);
+  };
 
   if (loading) {
     return (
@@ -540,14 +443,18 @@ const BillDetails = () => {
       <div className="p-4 text-center">
         <div className="bg-white rounded-lg border border-gray-200 p-8">
           <FaFileInvoiceDollar className="text-gray-300 text-5xl mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Bill Not Found</h2>
-          <p className="text-gray-600 mb-4">The bill you're looking for doesn't exist or has been deleted.</p>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">
+            Bill Not Found
+          </h2>
+          <p className="text-gray-600 mb-4">
+            The bill you're looking for doesn't exist or has been deleted.
+          </p>
           <button
-            onClick={() => navigate('/deliveries/bills')}
+            onClick={() => navigate("/deliveries/bills")}
             className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg"
           >
             <FaArrowLeft className="inline mr-2 text-sm" />
-            {trans('back')}
+            {trans("back")}
           </button>
         </div>
       </div>
@@ -555,7 +462,7 @@ const BillDetails = () => {
   }
 
   return (
-    <div className="p-4" dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className="p-4" dir={isRTL ? "rtl" : "ltr"}>
       <ToastContainer
         position={isRTL ? "top-left" : "top-right"}
         autoClose={3000}
@@ -566,17 +473,15 @@ const BillDetails = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => navigate('/deliveries')}
+            onClick={() => navigate("/deliveries")}
             className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
           >
-            <FaArrowLeft className={`text-sm ${isRTL ? 'rotate-180' : ''}`} />
+            <FaArrowLeft className={`text-sm ${isRTL ? "rotate-180" : ""}`} />
           </button>
           <div>
             <h1 className="text-xl md:text-xl font-bold text-gray-900 flex items-center ">
-             
-              {trans('billNumber')} :  ({bill.bill_id})
+              {trans("billNumber")} : ({bill.bill_id})
             </h1>
-            
           </div>
         </div>
         <button
@@ -584,88 +489,108 @@ const BillDetails = () => {
           className="flex items-center justify-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-xl transition-colors shadow-md hover:shadow-lg"
         >
           <FaPrint />
-          {trans('printBill')}
+          {trans("printBill")}
         </button>
       </div>
 
-   <div className="w-full bg-white rounded-xl shadow-md border border-gray-200 p-2 hover:shadow-lg transition-shadow mb-3">
-  <div className="flex items-center gap-4">
-    {/* Avatar */}
-    <div className="w-8 h-8 bg-gradient-to-br from-blue-50 to-blue-100 rounded-full flex items-center justify-center">
-      <FaUserTie className="text-blue-600 text-2xl" />
-    </div>
+      <div className="w-full bg-white rounded-xl shadow-md border border-gray-200 p-2 hover:shadow-lg transition-shadow mb-3">
+        <div className="flex items-center gap-4">
+          {/* Avatar */}
+          <div className="w-8 h-8 bg-gradient-to-br from-blue-50 to-blue-100 rounded-full flex items-center justify-center">
+            <FaUserTie className="text-blue-600 text-2xl" />
+          </div>
 
-    {/* Agent Info */}
-    <div className="flex flex-row items-center gap-4 w-full">
-      <p className="text-gray-900 font-semibold text-lg truncate">{bill.agent_name}</p>
-      <div className="flex items-center gap-2 text-gray-600 text-sm">
-        <FaPhone className="text-blue-400 text-xs" />
-        <span>{bill.agent_phone || '—'}</span>
+          {/* Agent Info */}
+          <div className="flex flex-row items-center gap-4 w-full">
+            <p className="text-gray-900 font-semibold text-lg truncate">
+              {bill.agent_name}
+            </p>
+            <div className="flex items-center gap-2 text-gray-600 text-sm">
+              <FaPhone className="text-blue-400 text-xs" />
+              <span>{bill.agent_phone || "—"}</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-1 mt-1 text-sm text-gray-600">
+            {trans("date")}: {new Date(bill.bill_date).toLocaleDateString()}
+          </div>
+        </div>
       </div>
-    </div>
-  <div className="flex items-center gap-1 mt-1 text-sm text-gray-600">
- 
-  
-    {trans('date')}: {new Date(bill.bill_date).toLocaleDateString()}
-  
-</div>
 
-  </div>
-</div>
-
-
-      {/* Deliveries Table with RTL‑fixed alignment */}
-      <div className=" rounded-xl border border-gray-200  ">
-       
-
+      {/* Deliveries Table */}
+      <div className="rounded-xl border border-gray-200">
         {bill.deliveries?.length === 0 ? (
           <div className="flex flex-col items-center py-16 px-4">
             <div className="bg-gray-100 p-6 rounded-full mb-4">
               <FaTruck className="text-gray-400 text-4xl" />
             </div>
-            <p className="text-gray-600 font-medium text-lg">{trans('noDeliveries')}</p>
+            <p className="text-gray-600 font-medium text-lg">
+              {trans("noDeliveries")}
+            </p>
           </div>
         ) : (
-      
-            <table className="min-w-full">
-              <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className={`px-5 py-4 ${alignClass} text-xs font-semibold text-gray-600 uppercase tracking-wider`}>
-                    {trans('tracking')}
-                  </th>
-                  <th className={`px-5 py-4 ${alignClass} text-xs font-semibold text-gray-600 uppercase tracking-wider`}>
-                    {trans('customer')}
-                  </th>
-                  <th className={`px-5 py-4 ${alignClass} text-xs font-semibold text-gray-600 uppercase tracking-wider`}>
-                    {trans('province')}
-                  </th>
-                  <th className={`px-5 py-4 ${alignClass} text-xs font-semibold text-gray-600 uppercase tracking-wider`}>
-                    {trans('assignedDate')}
-                  </th>
-                
-                  <th className={`px-5 py-4 ${alignClass} text-xs font-semibold text-gray-600 uppercase tracking-wider`}>
-                    {trans('status')}
-                  </th>
-                  <th className="px-5 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {trans('actions')}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {bill.deliveries.map((delivery) => (
+          <table className="min-w-full">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-200">
+                <th
+                  className={`px-3 py-4 ${alignClass} text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap`}
+                >
+                  {trans("tracking")}
+                </th>
+                <th
+                  className={`px-3 py-4 ${alignClass} text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap`}
+                >
+                  {trans("customer")}
+                </th>
+                <th
+                  className={`px-3 py-4 ${alignClass} text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap`}
+                >
+                  {trans("province")}
+                </th>
+                <th
+                  className={`px-3 py-4 ${alignClass} text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap`}
+                >
+                  {trans("assignedDate")}
+                </th>
+                <th className="px-3 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                  Cancel
+                </th>
+                <th className="px-3 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                  Reject
+                </th>
+                <th className="px-3 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                  Deliverd
+                </th>
+                <th
+                  className={`px-3 py-4 ${alignClass} text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap`}
+                >
+                  {trans("status")}
+                </th>
+                <th className="px-3 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                  {trans("actions")}
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {bill.deliveries.map((delivery) => {
+                const isCancelled = delivery.delivery_status === "cancelled";
+                const isRejected = delivery.delivery_status === "rejected";
+                const isCompleted = delivery.delivery_status === "delivered";
+                return (
                   <tr
                     key={delivery.assignment_id}
                     className="group cursor-pointer hover:bg-blue-50/50 transition-colors duration-150"
-                    onClick={() => navigate(`/deliveries/view/${delivery.delivery_id}`)}
+                    onClick={() =>
+                      navigate(`/deliveries/view/${delivery.delivery_id}`)
+                    }
                   >
-                    <td className={`px-5 py-4 ${alignClass}`}>
+                    <td className={`px-3 py-4 ${alignClass}`}>
                       <span className="font-mono text-sm font-medium text-gray-900 group-hover:text-blue-600">
-                       # {delivery.delivery_id}
+                        #{delivery.delivery_id}
                       </span>
                     </td>
-                    <td className={`px-5 py-4 ${alignClass}`}>
+                    <td className={`px-3 py-4 ${alignClass}`}>
                       <div className="text-sm font-medium text-gray-900">
-                        {delivery.customer_name || 'N/A'}
+                        {delivery.customer_name || "N/A"}
                       </div>
                       {delivery.customer_phone && (
                         <div className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
@@ -674,25 +599,93 @@ const BillDetails = () => {
                         </div>
                       )}
                     </td>
-                    <td className={`px-5 py-4 ${alignClass}`}>
+                    <td className={`px-3 py-4 ${alignClass}`}>
                       <span className="text-sm text-gray-700 flex items-center gap-1">
                         <FaMapMarkerAlt className="text-gray-400 text-xs" />
-                        {delivery.province_name || 'N/A'}
+                        {delivery.province_name || "N/A"}
                       </span>
                     </td>
-                    <td className={`px-5 py-4 ${alignClass}`}>
+                    <td className={`px-3 py-4 ${alignClass}`}>
                       <span className="text-sm text-gray-700">
                         {new Date(delivery.assigned_date).toLocaleDateString()}
                       </span>
                     </td>
-                 
-                    <td className={`px-5 py-4 ${alignClass}`}>
+
+                    {/* Cancel Checkbox */}
+                    <td className="px-3 py-4 text-center">
+                      <input
+                        type="checkbox"
+                        checked={isCancelled}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          if (e.target.checked) {
+                            handleStatusChange(
+                              delivery.delivery_id,
+                              "cancelled",
+                            );
+                          } else {
+                            handleStatusChange(delivery.delivery_id, "pending");
+                          }
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 focus:ring-2"
+                        disabled={isRejected}
+                      />
+                    </td>
+
+                    {/* Reject Checkbox */}
+                    <td className="px-3 py-4 text-center">
+                      <input
+                        type="checkbox"
+                        checked={isRejected}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          if (e.target.checked) {
+                            handleStatusChange(
+                              delivery.delivery_id,
+                              "rejected",
+                            );
+                          } else {
+                            handleStatusChange(delivery.delivery_id, "pending");
+                          }
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-4 h-4 text-yellow-600 bg-gray-100 border-gray-300 rounded focus:ring-yellow-500 focus:ring-2"
+                        disabled={isCancelled}
+                      />
+                    </td>
+
+                    {/* deliverd Checkbox */}
+                    <td className="px-3 py-4 text-center">
+                      <input
+                        type="checkbox"
+                        checked={isCompleted}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          if (e.target.checked) {
+                            handleStatusChange(
+                              delivery.delivery_id,
+                              "delivered",
+                            );
+                          } else {
+                            handleStatusChange(delivery.delivery_id, "pending");
+                          }
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-4 h-4 text-yellow-600 bg-gray-100 border-gray-300 rounded focus:ring-yellow-500 focus:ring-2"
+                        disabled={isCancelled}
+                      />
+                    </td>
+
+                    <td className={`px-3 py-4 ${alignClass}`}>
                       {getStatusBadge(delivery)}
                     </td>
-                    <td className="px-5 py-4 text-center">
+                    <td className="px-3 py-4 text-center">
                       <div className="relative actions-dropdown inline-block">
                         <button
-                          onClick={(e) => toggleActions(delivery.delivery_id, e)}
+                          onClick={(e) =>
+                            toggleActions(delivery.delivery_id, e)
+                          }
                           className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                         >
                           <FaEllipsisH className="text-sm" />
@@ -701,7 +694,7 @@ const BillDetails = () => {
                         {expandedActions === delivery.delivery_id && (
                           <div
                             className={`absolute ${
-                              isRTL ? 'left-0' : 'right-0'
+                              isRTL ? "left-0" : "right-0"
                             } mt-1 w-56 bg-white rounded-xl shadow-xl border border-gray-200 z-50 py-1`}
                             onClick={(e) => e.stopPropagation()}
                           >
@@ -710,29 +703,17 @@ const BillDetails = () => {
                               className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                             >
                               <FaEye className="ml-3 rtl:mr-3 rtl:ml-0 text-gray-500 text-xs" />
-                              {trans('view')}
+                              {trans("view")}
                             </Link>
-                            
-                            <button
-                              onClick={() => {
-                                setStatusChangeDelivery(delivery);
-                                setNewStatus(delivery.delivery_status);
-                                setShowStatusChangeModal(true);
-                                setExpandedActions(null);
-                              }}
-                              className="flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                            >
-                              <FaExchangeAlt className="ml-3 rtl:mr-3 rtl:ml-0 text-gray-500 text-xs" />
-                              {trans('changeStatus')}
-                            </button>
+
                             <Link
                               to={`/deliveries/edit/${delivery.delivery_id}`}
                               className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                             >
                               <FaEdit className="ml-3 rtl:mr-3 rtl:ml-0 text-gray-500 text-xs" />
-                              {trans('edit')}
+                              {trans("edit")}
                             </Link>
-                            {delivery.delivery_status !== 'cancelled' && delivery.delivery_status !== 'delivered' && (
+                            {delivery.return_status !== "full_return" && (
                               <button
                                 onClick={() => {
                                   setSelectedDelivery(delivery);
@@ -742,7 +723,7 @@ const BillDetails = () => {
                                 className="flex items-center w-full px-4 py-2.5 text-sm text-yellow-600 hover:bg-yellow-50 transition-colors"
                               >
                                 <FaUndo className="ml-3 rtl:mr-3 rtl:ml-0 text-yellow-500 text-xs" />
-                                {trans('return')}
+                                {trans("return")}
                               </button>
                             )}
                             <button
@@ -754,102 +735,175 @@ const BillDetails = () => {
                               className="flex items-center w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
                             >
                               <FaTrash className="ml-3 rtl:mr-3 rtl:ml-0 text-red-500 text-xs" />
-                              {trans('delete')}
+                              {trans("delete")}
                             </button>
                           </div>
                         )}
                       </div>
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-         
+                );
+              })}
+            </tbody>
+          </table>
         )}
 
-        {/* Items Summary - now scrolls properly */}
+        {/* Items Summary */}
         {bill.deliveries?.length > 0 && (
           <div className="border-t border-gray-200 bg-gray-50/80 px-5 py-4">
             <details className="group">
               <summary className="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer hover:text-gray-900 list-none">
                 <span className="text-xs bg-gray-200 rounded-full px-3 py-1.5 group-open:bg-blue-100 group-open:text-blue-700 transition-colors">
-                  {bill.deliveries.reduce((sum, d) => sum + (d.items_count || 0), 0)} {trans('totalItems')}
+                  {bill.deliveries.reduce(
+                    (sum, d) => sum + (d.items_count || 0),
+                    0,
+                  )}{" "}
+                  {trans("totalItems")}
                 </span>
                 <span className="text-gray-600 group-open:text-blue-600">
-                  {language === 'en' ? 'Show item details' : 
-                   language === 'ps' ? 'د توکو جزیات وښایئ' : 
-                   'نمایش جزئیات اقلام'}
+                  {language === "en"
+                    ? "Show item details"
+                    : language === "ps"
+                      ? "د توکو جزیات وښایئ"
+                      : "نمایش جزئیات اقلام"}
                 </span>
               </summary>
               <div className="mt-4 space-y-4 max-h-[600px] overflow-y-auto pr-1">
-                {bill.deliveries.map((delivery) => (
-                  delivery.items && delivery.items.length > 0 && (
-                    <div key={`items-${delivery.delivery_id}`} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
-                      <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-                        <span className="text-xs font-medium text-gray-700 bg-gray-100 px-3 py-1.5 rounded-full">
-                          {delivery.tracking_number} - {delivery.customer_name}
-                        </span>
-                        <span className="text-xs text-gray-600">
-                          {delivery.items_count} {trans('items')}
-                        </span>
-                      </div>
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-xs">
-                          <thead className="bg-gray-50">
-                            <tr>
-                              <th className={`px-3 py-2 ${alignClass} text-gray-600 font-medium`}>
-                                {trans('itemName')}
-                              </th>
-                              <th className={`px-3 py-2 ${isRTL ? 'text-left' : 'text-right'} text-gray-600 font-medium`}>
-                                {trans('quantity')}
-                              </th>
-                              <th className={`px-3 py-2 ${isRTL ? 'text-left' : 'text-right'} text-gray-600 font-medium`}>
-                                Unit Cost
-                              </th>
-                              <th className={`px-3 py-2 ${isRTL ? 'text-left' : 'text-right'} text-gray-600 font-medium`}>
-                                Selling Price
-                              </th>
-                              <th className={`px-3 py-2 ${isRTL ? 'text-left' : 'text-right'} text-gray-600 font-medium`}>
-                                {trans('total')}
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {delivery.items.map((item) => (
-                              <tr key={item.item_id} className="border-t border-gray-100">
-                                <td className={`px-3 py-2 ${alignClass} font-medium text-gray-900`}>
-                                  {item.item_name}
-                                </td>
-                                <td className={`px-3 py-2 ${isRTL ? 'text-left' : 'text-right'} text-gray-700`}>
-                                  {item.quantity}
-                                </td>
-                                <td className={`px-3 py-2 ${isRTL ? 'text-left' : 'text-right'} text-gray-700`}>
-                                  ${Number(item.unit_cost).toFixed(2)}
-                                </td>
-                                
+                {bill.deliveries.map(
+                  (delivery) =>
+                    delivery.items &&
+                    delivery.items.length > 0 && (
+                      <div
+                        key={`items-${delivery.delivery_id}`}
+                        className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm"
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                          <span className="text-xs font-medium text-gray-700 bg-gray-100 px-3 py-1.5 rounded-full">
+                            {delivery.tracking_number} -{" "}
+                            {delivery.customer_name}
+                          </span>
+                          <span className="text-xs text-gray-600">
+                            {delivery.items_count} {trans("items")}
+                          </span>
+                        </div>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-xs">
+                            <thead className="bg-gray-50">
+                              <tr>
+                                <th
+                                  className={`px-3 py-2 ${alignClass} text-gray-600 font-medium`}
+                                >
+                                  {trans("itemName")}
+                                </th>
+                                <th
+                                  className={`px-3 py-2 ${isRTL ? "text-left" : "text-right"} text-gray-600 font-medium`}
+                                >
+                                  {trans("quantity")}
+                                </th>
+                                <th
+                                  className={`px-3 py-2 ${isRTL ? "text-left" : "text-right"} text-gray-600 font-medium`}
+                                >
+                                  Unit Cost
+                                </th>
+                                <th
+                                  className={`px-3 py-2 ${isRTL ? "text-left" : "text-right"} text-gray-600 font-medium`}
+                                >
+                                  Selling Price
+                                </th>
+                                <th
+                                  className={`px-3 py-2 ${isRTL ? "text-left" : "text-right"} text-gray-600 font-medium`}
+                                >
+                                  {trans("total")}
+                                </th>
                               </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                            </thead>
+                            <tbody>
+                              {delivery.items.map((item) => (
+                                <tr
+                                  key={item.item_id}
+                                  className="border-t border-gray-100"
+                                >
+                                  <td
+                                    className={`px-3 py-2 ${alignClass} font-medium text-gray-900`}
+                                  >
+                                    {item.item_name}
+                                  </td>
+                                  <td
+                                    className={`px-3 py-2 ${isRTL ? "text-left" : "text-right"} text-gray-700`}
+                                  >
+                                    {item.quantity}
+                                  </td>
+                                  <td
+                                    className={`px-3 py-2 ${isRTL ? "text-left" : "text-right"} text-gray-700`}
+                                  >
+                                    ${Number(item.unit_cost).toFixed(2)}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
                       </div>
-                    </div>
-                  )
-                ))}
+                    ),
+                )}
               </div>
             </details>
           </div>
         )}
       </div>
 
-      {/* Hidden Printable Invoice - Now includes agent info */}
-      <div ref={printRef} style={{ display: 'none' }}>
-  <BillPrintView bill={bill} language={language} isRTL={isRTL} t={t} />
-</div>
+      {/* ---------- Print Modal ---------- */}
+      {showPrintModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-[400px] max-h-[90vh] overflow-y-auto">
+            <div className="p-4 border-b flex justify-between items-center">
+              <h3 className="font-bold text-lg">Print Preview </h3>
+              <button
+                onClick={() => setShowPrintModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <FaTimes />
+              </button>
+            </div>
+            <div
+              className="p-6 print-content"
+              style={{ width: "80mm", margin: "0 auto" }}
+            >
+              <BillPrintView
+                bill={bill}
+                language={language}
+                isRTL={isRTL}
+                t={t}
+                hidePrintButton={true}
+              />
+            </div>
+            <div className="p-4 border-t flex justify-end gap-2">
+              <button
+                onClick={() => setShowPrintModal(false)}
+                className="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50"
+              >
+                {trans("cancel")}
+              </button>
+              <button
+                onClick={() => {
+                  if (window.electronAPI?.printPage) {
+                    window.electronAPI.printPage();
+                  } else {
+                    window.print();
+                  }
+                }}
+                className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-2"
+              >
+                <FaPrint /> {trans("print")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-      {/* ---------- Delete Modal ---------- */}
+      {/* Delete Modal */}
       {showDeleteModal && selectedDelivery && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          {/* ... (modal content unchanged) ... */}
           <div className="bg-white rounded-lg w-full max-w-sm overflow-hidden">
             <div className="p-5">
               <div className="text-center">
@@ -857,21 +911,27 @@ const BillDetails = () => {
                   <FaTrash className="text-red-600 text-xl" />
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 mb-2">
-                  {trans('confirmDelete')}
+                  {trans("confirmDelete")}
                 </h3>
                 <p className="text-sm text-gray-600 mb-4">
-                  Delete #{selectedDelivery.tracking_number}? {trans('deleteWarning')}
+                  Delete #{selectedDelivery.tracking_number}?{" "}
+                  {trans("deleteWarning")}
                 </p>
                 <div className="bg-gray-50 rounded-lg p-3 mb-4 text-left">
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Customer:</span>
-                      <span className="font-medium">{selectedDelivery.customer_name || "N/A"}</span>
+                      <span className="font-medium">
+                        {selectedDelivery.customer_name || "N/A"}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Commission:</span>
                       <span className="font-medium text-blue-600">
-                        ${Number(selectedDelivery.commission_amount || 0).toFixed(2)}
+                        $
+                        {Number(
+                          selectedDelivery.commission_amount || 0,
+                        ).toFixed(2)}
                       </span>
                     </div>
                   </div>
@@ -882,14 +942,14 @@ const BillDetails = () => {
                   onClick={() => setShowDeleteModal(false)}
                   className="flex-1 border border-gray-300 text-gray-700 font-semibold py-2 rounded-lg hover:bg-gray-50 transition-colors text-sm"
                 >
-                  {trans('cancel')}
+                  {trans("cancel")}
                 </button>
                 <button
                   onClick={handleDeleteDelivery}
                   className="flex-1 bg-red-600 text-white font-semibold py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center text-sm"
                 >
-                  <FaTrash className={`${isRTL ? 'ml-2' : 'mr-2'} text-xs`} />
-                  {trans('delete')}
+                  <FaTrash className={`${isRTL ? "ml-2" : "mr-2"} text-xs`} />
+                  {trans("delete")}
                 </button>
               </div>
             </div>
@@ -897,80 +957,9 @@ const BillDetails = () => {
         </div>
       )}
 
-      {/* ---------- Status Change Modal ---------- */}
-      {showStatusChangeModal && statusChangeDelivery && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          {/* ... (modal content unchanged) ... */}
-          <div className="bg-white rounded-lg w-full max-w-sm overflow-hidden">
-            <div className="p-5">
-              <div className="text-center">
-                <div className="w-14 h-14 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <FaExchangeAlt className="text-blue-600 text-xl" />
-                </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">
-                  {trans('changeStatus')}
-                </h3>
-                <div className="bg-gray-50 rounded-lg p-3 mb-4 text-left">
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">{trans('currentStatus')}:</span>
-                      <span className="font-medium">
-                        {getStatusLabel(statusChangeDelivery.delivery_status)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Tracking:</span>
-                      <span className="font-mono font-medium">{statusChangeDelivery.tracking_number}</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {trans('newStatus')}
-                  </label>
-                  <select
-                    value={newStatus}
-                    onChange={(e) => setNewStatus(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                  >
-                    <option value="pending">{getStatusLabel('pending')}</option>
-                    <option value="in_transit">{getStatusLabel('in_transit')}</option>
-                    <option value="delivered">{getStatusLabel('delivered')}</option>
-                    <option value="cancelled">{getStatusLabel('cancelled')}</option>
-                  </select>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => {
-                    setShowStatusChangeModal(false);
-                    setStatusChangeDelivery(null);
-                  }}
-                  className="flex-1 border border-gray-300 text-gray-700 font-semibold py-2 rounded-lg hover:bg-gray-50 transition-colors text-sm"
-                >
-                  {trans('cancel')}
-                </button>
-                <button
-                  onClick={() => {
-                    handleStatusChange(statusChangeDelivery.delivery_id, newStatus);
-                    setShowStatusChangeModal(false);
-                    setStatusChangeDelivery(null);
-                  }}
-                  className="flex-1 bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center text-sm"
-                >
-                  <FaExchangeAlt className={`${isRTL ? 'ml-2' : 'mr-2'} text-xs`} />
-                  {trans('save')}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ---------- Return Modal ---------- */}
+      {/* Return Modal */}
       {showReturnModal && selectedDelivery && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2">
-          {/* ... (modal content unchanged) ... */}
           <div className="bg-white rounded-lg w-full max-w-md overflow-hidden">
             <div className="p-5">
               <div className="text-center">
@@ -978,22 +967,29 @@ const BillDetails = () => {
                   <FaUndo className="text-yellow-600 text-xl" />
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 mb-2">
-                  {trans('recordReturn')}
+                  {trans("recordReturn")}
                 </h3>
                 <div className="bg-gray-50 rounded-lg p-3 mb-4 text-left">
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Tracking:</span>
-                      <span className="font-mono font-medium">{selectedDelivery.tracking_number}</span>
+                      <span className="font-mono font-medium">
+                        {selectedDelivery.tracking_number}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Customer:</span>
-                      <span className="font-medium">{selectedDelivery.customer_name || "N/A"}</span>
+                      <span className="font-medium">
+                        {selectedDelivery.customer_name || "N/A"}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Commission:</span>
                       <span className="font-medium text-blue-600">
-                        ${Number(selectedDelivery.commission_amount || 0).toFixed(2)}
+                        $
+                        {Number(
+                          selectedDelivery.commission_amount || 0,
+                        ).toFixed(2)}
                       </span>
                     </div>
                   </div>
@@ -1001,32 +997,44 @@ const BillDetails = () => {
                 <div className="space-y-4 mb-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {trans('returnReason')}
+                      {trans("returnReason")}
                     </label>
                     <select
                       value={returnForm.return_reason}
-                      onChange={(e) => setReturnForm({...returnForm, return_reason: e.target.value})}
+                      onChange={(e) =>
+                        setReturnForm({
+                          ...returnForm,
+                          return_reason: e.target.value,
+                        })
+                      }
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
                     >
-                      <option value="refused">{trans('refused')}</option>
-                      <option value="damaged">{trans('damaged')}</option>
-                      <option value="wrong_item">{trans('wrongItem')}</option>
-                      <option value="delayed">{trans('delayed')}</option>
-                      <option value="other">{trans('other')}</option>
+                      <option value="refused">{trans("refused")}</option>
+                      <option value="damaged">{trans("damaged")}</option>
+                      <option value="wrong_item">{trans("wrongItem")}</option>
+                      <option value="delayed">{trans("delayed")}</option>
+                      <option value="other">{trans("other")}</option>
                     </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {trans('returnFee')}
+                      {trans("returnFee")}
                     </label>
                     <div className="relative">
-                      <span className="absolute left-3 top-2 text-gray-500">$</span>
+                      <span className="absolute left-3 top-2 text-gray-500">
+                        $
+                      </span>
                       <input
                         type="number"
                         step="0.01"
                         min="0"
                         value={returnForm.return_fee}
-                        onChange={(e) => setReturnForm({...returnForm, return_fee: e.target.value})}
+                        onChange={(e) =>
+                          setReturnForm({
+                            ...returnForm,
+                            return_fee: e.target.value,
+                          })
+                        }
                         className="w-full border border-gray-300 rounded-lg pl-7 pr-3 py-2 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
                         placeholder="0.00"
                       />
@@ -1034,11 +1042,13 @@ const BillDetails = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {trans('notes')}
+                      {trans("notes")}
                     </label>
                     <textarea
                       value={returnForm.notes}
-                      onChange={(e) => setReturnForm({...returnForm, notes: e.target.value})}
+                      onChange={(e) =>
+                        setReturnForm({ ...returnForm, notes: e.target.value })
+                      }
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
                       rows="2"
                       placeholder="Optional notes about the return"
@@ -1055,25 +1065,48 @@ const BillDetails = () => {
                       return_reason: "refused",
                       return_fee: 0,
                       handling_fee: 0,
-                      notes: ""
+                      notes: "",
                     });
                   }}
                   className="flex-1 border border-gray-300 text-gray-700 font-semibold py-2 rounded-lg hover:bg-gray-50 transition-colors text-sm"
                 >
-                  {trans('cancel')}
+                  {trans("cancel")}
                 </button>
                 <button
                   onClick={handleDeliveryReturn}
                   className="flex-1 bg-yellow-600 text-white font-semibold py-2 rounded-lg hover:bg-yellow-700 transition-colors flex items-center justify-center text-sm"
                 >
-                  <FaUndo className={`${isRTL ? 'ml-2' : 'mr-2'} text-xs`} />
-                  {trans('confirmReturn')}
+                  <FaUndo className={`${isRTL ? "ml-2" : "mr-2"} text-xs`} />
+                  {trans("confirmReturn")}
                 </button>
               </div>
             </div>
           </div>
         </div>
       )}
+
+      {/* Print styles for 80mm */}
+      <style>{`
+        @media print {
+          body { margin: 0; padding: 0; }
+          body * { visibility: hidden; }
+          .print-content,
+          .print-content * { visibility: visible; }
+          .print-content {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            max-width: 75mm;
+            padding: 2mm;
+            background: white;
+          }
+          @page {
+            size: 80mm auto;
+            margin: 0;
+          }
+        }
+      `}</style>
     </div>
   );
 };

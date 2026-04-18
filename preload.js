@@ -1,6 +1,21 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("electronAPI", {
+  // Add these to your electronAPI object
+  getExpenses: (startDate, endDate) =>
+    ipcRenderer.invoke("get-expenses", startDate, endDate),
+  getExpense: (expenseId) => ipcRenderer.invoke("get-expense", expenseId),
+  addExpense: (expenseData) => ipcRenderer.invoke("add-expense", expenseData),
+  updateExpense: (expenseData) =>
+    ipcRenderer.invoke("update-expense", expenseData),
+  deleteExpense: (expenseId) => ipcRenderer.invoke("delete-expense", expenseId),
+  searchExpenses: (searchTerm) =>
+    ipcRenderer.invoke("search-expenses", searchTerm),
+  getExpensesByDateRange: (startDate, endDate) =>
+    ipcRenderer.invoke("get-expenses-by-date-range", startDate, endDate),
+  getExpenseStats: (startDate, endDate) =>
+    ipcRenderer.invoke("get-expense-stats", startDate, endDate),
+
   // Province Management
   getProvinces: () => ipcRenderer.invoke("get-provinces"),
   getProvince: (provinceId) => ipcRenderer.invoke("get-province", provinceId),
@@ -44,8 +59,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.invoke("search-customers", searchTerm),
 
   // Deliveries/Bills Management
-  updateDeliveryStatus: (deliveryId, newStatus) =>
-    ipcRenderer.invoke("update-delivery-status", deliveryId, newStatus),
+  // updateDeliveryStatus: (deliveryId, newStatus) =>
+  //   ipcRenderer.invoke("update-delivery-status", deliveryId, newStatus),
 
   getAgentDeliveries: (agentId) =>
     ipcRenderer.invoke("get-agent-deliveries", agentId),
@@ -106,4 +121,17 @@ contextBridge.exposeInMainWorld("electronAPI", {
   restoreDatabase: () => ipcRenderer.invoke("restore-database"),
   getDashboardSummary: (options) =>
     ipcRenderer.invoke("get-dashboard-summary", options),
+  addAgentPayment: (paymentData) =>
+    ipcRenderer.invoke("add-agent-payment", paymentData),
+  getAgentPaymentsByProvince: (provinceId) =>
+    ipcRenderer.invoke("get-agent-payments-by-province", provinceId),
+  getAgentPaymentsByAgent: (agentId) =>
+    ipcRenderer.invoke("get-agent-payments-by-agent", agentId),
+  updateAgentPayment: (paymentId, paymentData) =>
+    ipcRenderer.invoke("update-agent-payment", paymentId, paymentData),
+  deleteAgentPayment: (paymentId) =>
+    ipcRenderer.invoke("delete-agent-payment", paymentId),
+  getProvinceFinancialSummary: (provinceId) =>
+    ipcRenderer.invoke("get-province-financial-summary", provinceId),
+  printPage: () => ipcRenderer.send("print-page"),
 });

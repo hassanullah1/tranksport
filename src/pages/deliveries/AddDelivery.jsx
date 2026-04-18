@@ -24,10 +24,11 @@ const AddDelivery = () => {
 
   const [customers, setCustomers] = useState([]);
   const [provinces, setProvinces] = useState([]);
+
   const [loading, setLoading] = useState(false);
   const [editingItemId, setEditingItemId] = useState(null);
   const [showCustomerModal, setShowCustomerModal] = useState(false);
-
+  console.log(provinces);
   // Print preview state
   const [showPrintModal, setShowPrintModal] = useState(false);
   const [printBillData, setPrintBillData] = useState(null);
@@ -276,13 +277,15 @@ const AddDelivery = () => {
         bill_id: result.delivery_id,
         bill_date: formData.delivery_date,
         agent_name: "N/A", // no agent in form yet
-        agent_phone: "",
+        phone: province.phone || "Unknown",
+        province_name: province.province_name || "Unknown",
+
         deliveries: [
           {
             delivery_id: result.delivery_id,
             customer_name: customer.customer_name || "Unknown",
             customer_phone: customer.phone || "",
-            province_name: province.province_name || "Unknown",
+
             items: formData.items.map((item) => ({
               item_id: item.id,
               item_name: item.item_name,
@@ -290,6 +293,8 @@ const AddDelivery = () => {
               unit_cost: item.unit_cost,
               quantity: item.quantity,
               total_cost: item.total_cost,
+              fess: item.fess,
+              commission: item.agent_cost,
             })),
           },
         ],
@@ -355,9 +360,9 @@ const AddDelivery = () => {
 
   const translations = {
     header: {
-      en: { title: "Add New Delivery" },
-      ps: { title: "نوی لیږد اضافه کړئ" },
-      fa: { title: "افزودن تحویل جدید" },
+      en: { title: "Add New Items" },
+      ps: { title: "نوی جنس اضافه کړئ" },
+      fa: { title: "افزودن جنس جدید" },
     },
     buttons: {
       en: {
@@ -406,7 +411,7 @@ const AddDelivery = () => {
     form: {
       en: {
         delivery_info: "Delivery Information",
-        add_items: "Add Items",
+        add_items: "Items Info",
         items_list: "Items List",
         summary: "Summary",
         customer: "Customer *",
@@ -430,8 +435,8 @@ const AddDelivery = () => {
       },
       ps: {
         delivery_info: "د لیږد معلومات",
-        add_items: "توکي اضافه کړئ",
-        items_list: "د توکیو لیست",
+        add_items: "دجنس معلومات",
+        items_list: "د جنسونو لیست",
         summary: "مجموعه",
         customer: "پیرودونکی *",
         province: "ولایت *",
@@ -454,7 +459,7 @@ const AddDelivery = () => {
       },
       fa: {
         delivery_info: "اطلاعات تحویل",
-        add_items: "افزودن آیتم",
+        add_items: "معلومات جنس",
         items_list: "لیست آیتم‌ها",
         summary: "خلاصه",
         customer: "مشتری *",
@@ -644,10 +649,13 @@ const AddDelivery = () => {
 
       {/* Print Preview Modal */}
       {showPrintModal && printBillData && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 "
+          
+        >
+          <div className="bg-white rounded-lg shadow-xl w-350 max-w-4xl max-h-[90vh] overflow-y-auto">
             <div className="p-4 border-b flex justify-between items-center">
-              <h3 className="font-bold text-lg">Print Preview (A5)</h3>
+              <h3 className="font-bold text-lg">Print Preview</h3>
               <button
                 onClick={() => setShowPrintModal(false)}
                 className="text-gray-500 hover:text-gray-700"
@@ -655,31 +663,27 @@ const AddDelivery = () => {
                 <FaTimes />
               </button>
             </div>
-            <div
-              className="p-6 print-content"
-              style={{ width: "210mm", margin: "0 auto" }}
-            >
+            <div className="p-6 print-content" style={{ maxWidth: "120mm" }}>
               <BillPrintView
                 bill={printBillData}
                 language={language}
-                isRTL={isRTL}
+                isRTL={true}
                 t={translations}
               />
             </div>
             <div className="p-4 border-t flex justify-end gap-2">
               <button
-                onClick={() =>{
+                onClick={() => {
                   setShowPrintModal(false);
                   navigate("/deliveries");
-                } }
+                }}
                 className="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50"
               >
                 {trans("buttons", "close")}
               </button>
               <button
                 onClick={() => {
-                  window.print();
-                  navigate("/deliveries");
+                  window.electronAPI.printPage();
                 }}
                 className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-2"
               >
@@ -806,69 +810,6 @@ const AddDelivery = () => {
                     className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded"
                     dir={isRTL ? "rtl" : "ltr"}
                   />
-                </div>
-              </div>
-            </div>
-
-            {/* Summary */}
-            <div className="bg-white rounded-lg shadow p-4">
-              <div className={`flex items-center mb-3 ${flexDirection}`}>
-                <FaMoneyBillWave
-                  className={`text-green-600 ${marginDirection}-2 text-sm`}
-                />
-                <h2 className="font-bold text-gray-800 text-sm">
-                  {trans("form", "summary")}
-                </h2>
-              </div>
-
-              <div className="space-y-2">
-                <div
-                  className={`flex justify-between items-center ${flexDirection}`}
-                >
-                  <span className="text-xs text-gray-600">
-                    {trans("form", "total_items")}
-                  </span>
-                  <span className="font-bold">{formData.items.length}</span>
-                </div>
-                <div
-                  className={`flex justify-between items-center ${flexDirection}`}
-                >
-                  <span className="text-xs text-gray-600">
-                    {trans("form", "total_quantity")}
-                  </span>
-                  <span className="font-bold">{totals.totalQuantity}</span>
-                </div>
-                <div
-                  className={`flex justify-between items-center ${flexDirection}`}
-                >
-                  <span className="text-xs text-gray-600">
-                    {trans("form", "total_cost_label")}
-                  </span>
-                  <span className="font-bold">
-                    ${totals.totalCost.toFixed(2)}
-                  </span>
-                </div>
-                {formData.agent_id && (
-                  <div
-                    className={`flex justify-between items-center ${flexDirection}`}
-                  >
-                    <span className="text-xs text-gray-600">
-                      {trans("form", "commission")}
-                    </span>
-                    <span className="font-bold">${commission.toFixed(2)}</span>
-                  </div>
-                )}
-                <div
-                  className={`flex justify-between items-center pt-2 border-t ${flexDirection}`}
-                >
-                  <span className="font-bold text-gray-800">
-                    {trans("form", "profit")}
-                  </span>
-                  <span
-                    className={`font-bold ${netProfit >= 0 ? "text-green-600" : "text-red-600"}`}
-                  >
-                    ${netProfit.toFixed(2)}
-                  </span>
                 </div>
               </div>
             </div>
@@ -1166,29 +1107,44 @@ const AddDelivery = () => {
 
       {/* Print styles */}
       <style>{`
-        @media print {
-          body * {
-            visibility: hidden;
-          }
-          .print-content, .print-content * {
-            visibility: visible;
-          }
-          .print-content {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 210mm;
-            height: auto;
-            margin: 0;
-            padding: 5mm;
-            background: white;
-          }
-          @page {
-            size: A5;
-            margin: 0;
-          }
-        }
-      `}</style>
+    @media print {
+@media print {
+  * {
+    box-sizing: border-box;   /* ✅ IMPORTANT */
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .print-content,
+  .print-content * {
+    visibility: visible;
+  }
+
+  .print-content {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 72mm;
+    max-width: 72mm;   /* ✅ prevent overflow */
+    padding: 2mm;
+    background: white;
+    overflow: hidden;  /* ✅ stop extra width */
+  }
+
+  @page {
+    size: 72mm auto;
+    margin: 0;
+  }
+}
+}`}</style>
     </div>
   );
 };

@@ -76,6 +76,8 @@ const ViewDelivery = () => {
           return_date: deliveryData.return_date ? formatDate(deliveryData.return_date) : null,
           items: deliveryData.items || []
         };
+
+        console.log("this is formate:",formatted, deliveryData);
         setDelivery(formatted);
       }
     } catch (error) {
@@ -202,42 +204,12 @@ const ViewDelivery = () => {
   const totals = calculateTotals();
 
   return (
-    <div className="min-h-screen bg-gray-50 p-3 md:p-5" dir={isRTL ? 'rtl' : 'ltr'}>
+    <div
+      className="min-h-screen bg-gray-50 p-3 md:p-5"
+      dir={isRTL ? "rtl" : "ltr"}
+    >
       <div className="max-w-5xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-xl shadow-sm p-4 mb-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-500 rounded-lg">
-                <FaTruck className="text-white text-xl" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-800">{t('deliveryDetails')}</h1>
-                <div className="flex flex-wrap gap-3 text-sm text-gray-600">
-                  <span>#{delivery.delivery_id}</span>
-                  <span>• {delivery.tracking_number}</span>
-                  <span>• {delivery.created_at}</span>
-                </div>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Link
-                to={`/deliveries/edit/${delivery.delivery_id}`}
-                className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg"
-              >
-                <FaEdit className="mr-2 rtl:mr-0 rtl:ml-2" />
-                {t('edit')}
-              </Link>
-              <Link
-                to="/deliveries"
-                className="inline-flex items-center px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm font-medium rounded-lg"
-              >
-                <FaTimes className="mr-2 rtl:mr-0 rtl:ml-2" />
-                {t('close')}
-              </Link>
-            </div>
-          </div>
-        </div>
+       
 
         {/* TOP INFO CARD: Customer + Province + Agent + Date + Status */}
         <div className="bg-white rounded-xl shadow-sm p-4 mb-4">
@@ -246,8 +218,10 @@ const ViewDelivery = () => {
             <div className="flex items-center gap-2 min-w-[180px]">
               <FaUser className="text-purple-600" />
               <div>
-                <div className="text-xs text-gray-500">{t('customer')}</div>
-                <div className="font-medium text-gray-900">{delivery.customer_name}</div>
+                <div className="text-xs text-gray-500">{t("customer")}</div>
+                <div className="font-medium text-gray-900">
+                  {delivery.customer_name}
+                </div>
                 {delivery.customer_phone && (
                   <div className="text-xs text-gray-600 flex items-center gap-1">
                     <FaPhone className="text-xs" /> {delivery.customer_phone}
@@ -260,8 +234,10 @@ const ViewDelivery = () => {
             <div className="flex items-center gap-2 min-w-[140px]">
               <FaMapMarkerAlt className="text-blue-600" />
               <div>
-                <div className="text-xs text-gray-500">{t('province')}</div>
-                <div className="font-medium text-gray-900">{delivery.province_name || '—'}</div>
+                <div className="text-xs text-gray-500">{t("province")}</div>
+                <div className="font-medium text-gray-900">
+                  {delivery.province_name || "—"}
+                </div>
               </div>
             </div>
 
@@ -270,8 +246,10 @@ const ViewDelivery = () => {
               <div className="flex items-center gap-2 min-w-[140px]">
                 <FaTruck className="text-green-600" />
                 <div>
-                  <div className="text-xs text-gray-500">{t('agent')}</div>
-                  <div className="font-medium text-gray-900">{delivery.agent_name}</div>
+                  <div className="text-xs text-gray-500">{t("agent")}</div>
+                  <div className="font-medium text-gray-900">
+                    {delivery.agent_name}
+                  </div>
                   {delivery.agent_phone && (
                     <div className="text-xs text-gray-600 flex items-center gap-1">
                       <FaPhone className="text-xs" /> {delivery.agent_phone}
@@ -285,14 +263,22 @@ const ViewDelivery = () => {
             <div className="flex items-center gap-2 min-w-[130px]">
               <FaCalendarAlt className="text-orange-600" />
               <div>
-                <div className="text-xs text-gray-500">{t('deliveryDate')}</div>
-                <div className="font-medium text-gray-900">{delivery.delivery_date}</div>
+                <div className="text-xs text-gray-500">{t("deliveryDate")}</div>
+                <div className="font-medium text-gray-900">
+                  {delivery.delivery_date}
+                </div>
               </div>
             </div>
 
             {/* Status Badge (right aligned) */}
             <div className="ml-auto rtl:ml-0 rtl:mr-auto">
-              {getStatusBadge(delivery.status)}
+              <Link
+                to="/deliveries"
+                className="inline-flex items-center px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm font-medium rounded-lg"
+              >
+                <FaTimes className="mr-2 rtl:mr-0 rtl:ml-2" />
+                {t("close")}
+              </Link>
             </div>
           </div>
         </div>
@@ -302,51 +288,73 @@ const ViewDelivery = () => {
           <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <FaBox className="text-blue-600" />
-              <h2 className="font-bold text-gray-800">{t('items')}</h2>
+              <h2 className="font-bold text-gray-800">{t("items")}</h2>
             </div>
             <span className="text-sm text-gray-600">
-              {delivery.items?.length || 0} {t('items')}
+              {delivery.items?.length || 0} {t("items")}
             </span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'} font-medium text-gray-600`}>
-                    {t('item')}
+                  <th
+                    className={`px-4 py-3 ${isRTL ? "text-right" : "text-left"} font-medium text-gray-600`}
+                  >
+                    {t("item")}
                   </th>
-                  <th className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'} font-medium text-gray-600`}>
-                    {t('quantity')}
+                  <th
+                    className={`px-4 py-3 ${isRTL ? "text-right" : "text-left"} font-medium text-gray-600`}
+                  >
+                    {t("quantity")}
                   </th>
-                  <th className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'} font-medium text-gray-600`}>
-                    {t('unitCost')}
+                  <th
+                    className={`px-4 py-3 ${isRTL ? "text-right" : "text-left"} font-medium text-gray-600`}
+                  >
+                    {t("unitCost")}
                   </th>
-                  <th className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'} font-medium text-gray-600`}>
-                    {t('sellingPrice')}
-                  </th>
-                  <th className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'} font-medium text-gray-600`}>
-                    {t('total')}
+
+                  <th
+                    className={`px-4 py-3 ${isRTL ? "text-right" : "text-left"} font-medium text-gray-600`}
+                  >
+                    {t("total")}
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {delivery.items?.map((item) => (
                   <tr key={item.item_id} className="hover:bg-gray-50">
-                    <td className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'}`}>
-                      <div className="font-medium text-gray-900">{item.item_name}</div>
+                    <td
+                      className={`px-4 py-3 ${isRTL ? "text-right" : "text-left"}`}
+                    >
+                      <div className="font-medium text-gray-900">
+                        {item.item_name}
+                      </div>
                       {item.item_description && (
-                        <div className="text-xs text-gray-500">{item.item_description}</div>
+                        <div className="text-xs text-gray-500">
+                          {item.item_description}
+                        </div>
                       )}
                     </td>
-                    <td className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'}`}>{item.quantity}</td>
-                    <td className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'}`}>
+                    <td
+                      className={`px-4 py-3 ${isRTL ? "text-right" : "text-left"}`}
+                    >
+                      {item.quantity}
+                    </td>
+                    <td
+                      className={`px-4 py-3 ${isRTL ? "text-right" : "text-left"}`}
+                    >
                       ${parseFloat(item.unit_cost || 0).toFixed(2)}
                     </td>
-                    <td className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'} text-green-600`}>
-                      ${parseFloat(item.selling_price || 0).toFixed(2)}
-                    </td>
-                    <td className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'} font-medium`}>
-                      ${(parseFloat(item.selling_price || 0) * parseInt(item.quantity || 1)).toFixed(2)}
+
+                    <td
+                      className={`px-4 py-3 ${isRTL ? "text-right" : "text-left"} font-medium`}
+                    >
+                      $
+                      {(
+                        parseFloat(item.total_cost || 0) *
+                        parseInt(item.quantity || 1)
+                      ).toFixed(2)}
                     </td>
                   </tr>
                 ))}
@@ -359,54 +367,47 @@ const ViewDelivery = () => {
         <div className="bg-white rounded-xl shadow-sm p-4">
           <div className="flex items-center gap-2 mb-4">
             <FaMoneyBillWave className="text-green-600" />
-            <h2 className="font-bold text-gray-800">{t('financialSummary')}</h2>
+            <h2 className="font-bold text-gray-800">{t("financialSummary")}</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Left side: financial figures */}
-            <div className="space-y-3">
-              <div className="flex justify-between py-2 border-b border-gray-100">
-                <span className="text-gray-600">{t('totalCost')}</span>
-                <span className="font-medium">${totals.totalCost}</span>
-              </div>
-            
-             
-            
-            </div>
-
-            {/* Right side: return info (if any) + quick actions */}
-            <div>
-              {delivery.return_status && delivery.return_status !== 'none' && (
-                <div className="mb-4 p-3 bg-purple-50 rounded-lg">
-                  <div className="flex items-center gap-2 mb-2 text-purple-700">
-                    <FaUndo />
-                    <span className="font-semibold">{trans('returnStatus')}</span>
-                  </div>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-600">{trans('returnStatus')}</span>
-                      {getReturnStatusBadge(delivery.return_status)}
-                    </div>
-                    {parseFloat(delivery.return_fee_charged) > 0 && (
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">{trans('returnFee')}</span>
-                        <span className="font-medium text-purple-700">
-                          ${parseFloat(delivery.return_fee_charged).toFixed(2)}
-                        </span>
-                      </div>
-                    )}
-                    {delivery.return_date && (
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">{trans('returnDate')}</span>
-                        <span className="font-medium">{delivery.return_date}</span>
-                      </div>
-                    )}
-                  </div>
+          {/* Right side: return info (if any) + quick actions */}
+          <div>
+            {delivery.return_status && delivery.return_status !== "none" && (
+              <div className="mb-4 p-3 bg-purple-50 rounded-lg">
+                <div className="flex items-center gap-2 mb-2 text-purple-700">
+                  <FaUndo />
+                  <span className="font-semibold">{trans("returnStatus")}</span>
                 </div>
-              )}
-
-            
-            </div>
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600">
+                      {trans("returnStatus")}
+                    </span>
+                    {getReturnStatusBadge(delivery.return_status)}
+                  </div>
+                  {parseFloat(delivery.return_fee_charged) > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">
+                        {trans("returnFee")}
+                      </span>
+                      <span className="font-medium text-purple-700">
+                        ${parseFloat(delivery.return_fee_charged).toFixed(2)}
+                      </span>
+                    </div>
+                  )}
+                  {delivery.return_date && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">
+                        {trans("returnDate")}
+                      </span>
+                      <span className="font-medium">
+                        {delivery.return_date}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

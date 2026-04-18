@@ -9,7 +9,6 @@ module.exports = (db) => {
           p.province_name
         FROM agents a
         LEFT JOIN provinces p ON a.province_id = p.province_id
-
         ORDER BY a.agent_name
       `);
       return rows;
@@ -23,39 +22,48 @@ module.exports = (db) => {
   const addAgent = async (agentData) => {
     try {
       const { agent_name, phone, province_id } = agentData;
-      
+
       // Check if agent already exists
       const [existing] = await db.query(
-        "SELECT agent_id FROM agents WHERE agent_name = ?", 
-        [agent_name]
+        "SELECT agent_id FROM agents WHERE agent_name = ?",
+        [agent_name],
       );
-      
+
       if (existing.length > 0) {
         throw new Error("Agent with this name already exists!");
       }
-      
+
       // If province_id is provided, check if it exists
       if (province_id) {
         const [province] = await db.query(
-          "SELECT province_id FROM provinces WHERE province_id = ?", 
-          [province_id]
+          "SELECT province_id FROM provinces WHERE province_id = ?",
+          [province_id],
         );
-        
+
         if (province.length === 0) {
           throw new Error("Selected province does not exist!");
         }
       }
-      
+
+      const [existing_agent] = await db.query(
+        "SELECT agent_id FROM agents WHERE province_id = ?",
+        [province_id],
+      );
+
+      if (existing_agent.length > 0) {
+        throw new Error("This province already has an agent");
+      }
+
       // Insert new agent
       const [result] = await db.query(
         "INSERT INTO agents (agent_name, phone, province_id) VALUES (?, ?, ?)",
-        [agent_name, phone, province_id || null]
+        [agent_name, phone, province_id || null],
       );
-      
-      return { 
-        success: true, 
-        agent_id: result.insertId, 
-        message: "Agent added successfully!" 
+
+      return {
+        success: true,
+        agent_id: result.insertId,
+        message: "Agent added successfully!",
       };
     } catch (error) {
       console.error("Error adding agent:", error);
@@ -67,39 +75,51 @@ module.exports = (db) => {
   const updateAgent = async (agentData) => {
     try {
       const { agent_id, agent_name, phone, province_id } = agentData;
-      
-      // Check if new name conflicts with another agent
+
+      // Check duplicate name (excluding self)
       const [existing] = await db.query(
-        "SELECT agent_id FROM agents WHERE agent_name = ? AND agent_id != ?", 
-        [agent_name, agent_id]
+        "SELECT agent_id FROM agents WHERE agent_name = ? AND agent_id != ?",
+        [agent_name, agent_id],
       );
-      
+
       if (existing.length > 0) {
         throw new Error("Another agent with this name already exists!");
       }
-      
-      // If province_id is provided, check if it exists
+
+      // Check province exists
       if (province_id) {
         const [province] = await db.query(
-          "SELECT province_id FROM provinces WHERE province_id = ?", 
-          [province_id]
+          "SELECT province_id FROM provinces WHERE province_id = ?",
+          [province_id],
         );
-        
+
         if (province.length === 0) {
           throw new Error("Selected province does not exist!");
         }
       }
-      
-      // Update agent
+
+      // ✅ FIXED: check province uniqueness (exclude current agent)
+      if (province_id) {
+        const [existing_agent] = await db.query(
+          "SELECT agent_id FROM agents WHERE province_id = ? AND agent_id != ?",
+          [province_id, agent_id],
+        );
+
+        if (existing_agent.length > 0) {
+          throw new Error("This province already has an agent");
+        }
+      }
+
+      // Update
       const [result] = await db.query(
         "UPDATE agents SET agent_name = ?, phone = ?, province_id = ? WHERE agent_id = ?",
-        [agent_name, phone, province_id || null, agent_id]
+        [agent_name, phone, province_id || null, agent_id],
       );
-      
-      return { 
-        success: true, 
+
+      return {
+        success: true,
         affectedRows: result.affectedRows,
-        message: "Agent updated successfully!" 
+        message: "Agent updated successfully!",
       };
     } catch (error) {
       console.error("Error updating agent:", error);
@@ -110,26 +130,15 @@ module.exports = (db) => {
   // Delete agent
   const deleteAgent = async (agentId) => {
     try {
-      // First check if agent has any deliveries
-      const [deliveries] = await db.query(
-        "SELECT COUNT(*) as count FROM deliveries WHERE agent_id = ?",
-        [agentId]
-      );
-      
-      if (deliveries[0].count > 0) {
-        throw new Error("Cannot delete agent with existing deliveries. Please reassign deliveries first.");
-      }
-      
       // Delete agent
-      const [result] = await db.query(
-        "DELETE FROM agents WHERE agent_id = ?",
-        [agentId]
-      );
-      
-      return { 
-        success: true, 
+      const [result] = await db.query("DELETE FROM agents WHERE agent_id = ?", [
+        agentId,
+      ]);
+
+      return {
+        success: true,
         affectedRows: result.affectedRows,
-        message: "Agent deleted successfully!" 
+        message: "Agent deleted successfully!",
       };
     } catch (error) {
       console.error("Error deleting agent:", error);
@@ -140,7 +149,8 @@ module.exports = (db) => {
   // Search agents
   const searchAgents = async (searchTerm) => {
     try {
-      const [rows] = await db.query(`
+      const [rows] = await db.query(
+        `
         SELECT 
           a.*,
           p.province_name
@@ -148,7 +158,9 @@ module.exports = (db) => {
         LEFT JOIN provinces p ON a.province_id = p.province_id
         WHERE a.agent_name LIKE ? OR a.phone LIKE ?
         ORDER BY a.agent_name
-      `, [`%${searchTerm}%`, `%${searchTerm}%`]);
+      `,
+        [`%${searchTerm}%`, `%${searchTerm}%`],
+      );
       return rows;
     } catch (error) {
       console.error("Error searching agents:", error);
@@ -159,11 +171,14 @@ module.exports = (db) => {
   // Get agents by province (for delivery form)
   const getAgentsByProvince = async (provinceId) => {
     try {
-      const [rows] = await db.query(`
+      const [rows] = await db.query(
+        `
         SELECT * FROM agents 
         WHERE province_id = ?
         ORDER BY agent_name
-      `, [provinceId]);
+      `,
+        [provinceId],
+      );
       return rows;
     } catch (error) {
       console.error("Error fetching agents by province:", error);
@@ -174,14 +189,15 @@ module.exports = (db) => {
   // Check if province is already assigned to another agent
   const checkProvinceAssignment = async (provinceId, excludeAgentId = null) => {
     try {
-      let query = "SELECT agent_id, agent_name FROM agents WHERE province_id = ?";
+      let query =
+        "SELECT agent_id, agent_name FROM agents WHERE province_id = ?";
       const params = [provinceId];
-      
+
       if (excludeAgentId) {
         query += " AND agent_id != ?";
         params.push(excludeAgentId);
       }
-      
+
       const [rows] = await db.query(query, params);
       return rows;
     } catch (error) {
@@ -197,6 +213,6 @@ module.exports = (db) => {
     updateAgent,
     deleteAgent,
     searchAgents,
-    checkProvinceAssignment
+    checkProvinceAssignment,
   };
 };

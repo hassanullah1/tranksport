@@ -176,7 +176,11 @@ module.exports = (db) => {
           a.phone AS agent_phone,
           -- total items count and total amount (you can adjust)
           COUNT(di.item_id) AS items_count,
-          SUM(di.unit_cost * di.quantity) AS total_amount
+          SUM(di.unit_cost * di.quantity) AS total_amount,
+          SUM(di.commission_amount * di.quantity) AS total_commission,
+          SUM(di.fess * di.quantity) AS total_fess
+
+
         FROM deliveries d
         LEFT JOIN customers c ON d.customer_id = c.customer_id
         LEFT JOIN provinces p ON d.province_id = p.province_id
@@ -329,83 +333,162 @@ module.exports = (db) => {
   // UPDATE DELIVERY (replace items & agent assignments)
   // ------------------------------------------------------------
   const updateDelivery = async (deliveryData) => {
-    const connection = await db.getConnection();
-    try {
-      await connection.beginTransaction();
+  const connection = await db.getConnection();
+  try {
+    await connection.beginTransaction();
 
-      // Update deliveries table
-      await connection.query(
-        `UPDATE deliveries SET 
+    // 1. Get the old agent assignments before deletion (to know which agents were affected)
+    const [oldAssignments] = await connection.query(
+      `SELECT agent_id FROM delivery_agent_assignments WHERE delivery_id = ?`,
+      [deliveryData.delivery_id]
+    );
+    const oldAgentIds = oldAssignments.map(row => row.agent_id);
+
+    // 2. Update deliveries table
+    await connection.query(
+      `UPDATE deliveries SET 
          province_id = ?, customer_id = ?, delivery_date = ?, status = ?
        WHERE delivery_id = ?`,
-        [
-          deliveryData.province_id || null,
-          deliveryData.customer_id || null,
-          deliveryData.delivery_date || new Date().toISOString().split("T")[0],
-          deliveryData.status || "pending",
-          deliveryData.delivery_id,
-        ],
-      );
+      [
+        deliveryData.province_id || null,
+        deliveryData.customer_id || null,
+        deliveryData.delivery_date || new Date().toISOString().split("T")[0],
+        deliveryData.status || "pending",
+        deliveryData.delivery_id,
+      ]
+    );
 
-      // Replace items – delete old ones
-      await connection.query(
-        "DELETE FROM delivery_items WHERE delivery_id = ?",
-        [deliveryData.delivery_id],
-      );
-
-      // Insert new items with all fields (same as addDelivery)
-      if (deliveryData.items?.length) {
-        for (const item of deliveryData.items) {
-          await connection.query(
-            `INSERT INTO delivery_items (
+    // 3. Replace items
+    await connection.query("DELETE FROM delivery_items WHERE delivery_id = ?", [
+      deliveryData.delivery_id,
+    ]);
+    if (deliveryData.items && deliveryData.items.length > 0) {
+      for (const item of deliveryData.items) {
+        await connection.query(
+          `INSERT INTO delivery_items (
              delivery_id, item_name, item_description, 
              unit_cost, quantity, commission_amount, fess
            ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            [
-              deliveryData.delivery_id,
-              item.item_name,
-              item.description || "", // item_description
-              parseFloat(item.unit_cost) || 0,
-              parseInt(item.quantity) || 1,
-              parseFloat(item.agent_cost) || 0, // commission_amount
-              parseFloat(item.fess) || 0,
-            ],
-          );
-        }
+          [
+            deliveryData.delivery_id,
+            item.item_name,
+            item.description || "",
+            parseFloat(item.unit_cost) || 0,
+            parseInt(item.quantity) || 1,
+            parseFloat(item.agent_cost) || 0,
+            parseFloat(item.fess) || 0,
+          ]
+        );
       }
+    } else {
+      throw new Error("Cannot update delivery without items");
+    }
 
-      // Replace agent assignments (if any)
-      await connection.query(
-        "DELETE FROM delivery_agent_assignments WHERE delivery_id = ?",
-        [deliveryData.delivery_id],
-      );
-      if (deliveryData.agents?.length) {
-        for (const agent of deliveryData.agents) {
-          await connection.query(
-            `INSERT INTO delivery_agent_assignments (
+    // 4. Replace agent assignments (keep bill_id if already assigned? We'll regenerate bills anyway)
+    await connection.query("DELETE FROM delivery_agent_assignments WHERE delivery_id = ?", [
+      deliveryData.delivery_id,
+    ]);
+    
+    // Collect new agent IDs
+    const newAgentIds = [];
+    if (deliveryData.agents && deliveryData.agents.length) {
+      for (const agent of deliveryData.agents) {
+        // Find existing bill for this agent & delivery date (if any)
+        // For simplicity, we'll insert without bill_id; bills will be regenerated later
+        await connection.query(
+          `INSERT INTO delivery_agent_assignments (
              delivery_id, agent_id, commission_amount, assigned_date, status
            ) VALUES (?, ?, ?, ?, ?)`,
-            [
-              deliveryData.delivery_id,
-              agent.agent_id,
-              parseFloat(agent.commission_amount) || 0,
-              agent.assigned_date || new Date().toISOString().split("T")[0],
-              agent.assignment_status || "pending",
-            ],
-          );
-        }
+          [
+            deliveryData.delivery_id,
+            agent.agent_id,
+            parseFloat(agent.commission_amount) || 0,
+            agent.assigned_date || new Date().toISOString().split("T")[0],
+            agent.assignment_status || "pending",
+          ]
+        );
+        newAgentIds.push(agent.agent_id);
       }
-
-      await connection.commit();
-      return { success: true, message: "Delivery updated successfully!" };
-    } catch (error) {
-      await connection.rollback();
-      throw error;
-    } finally {
-      connection.release();
     }
-  };
 
+    // 5. Update agent bills for affected agents (old + new)
+    const allAffectedAgentIds = [...new Set([...oldAgentIds, ...newAgentIds])];
+    for (const agentId of allAffectedAgentIds) {
+      await regenerateBillForAgent(connection, agentId, deliveryData.delivery_date);
+    }
+
+    await connection.commit();
+    return { success: true, message: "Delivery updated and bills regenerated successfully!" };
+  } catch (error) {
+    await connection.rollback();
+    console.error("Update delivery error:", error);
+    throw error;
+  } finally {
+    connection.release();
+  }
+};
+
+// Helper function to regenerate bill for a specific agent for the month of the given date
+async function regenerateBillForAgent(connection, agentId, dateString) {
+  const date = new Date(dateString);
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  const startDate = `${year}-${month.toString().padStart(2,'0')}-01`;
+  const endDate = `${year}-${month.toString().padStart(2,'0')}-31`;
+
+  // Calculate total commission for this agent in this month from delivery_agent_assignments
+  const [result] = await connection.query(
+    `SELECT COALESCE(SUM(commission_amount), 0) as total_commission
+     FROM delivery_agent_assignments da
+     JOIN deliveries d ON da.delivery_id = d.delivery_id
+     WHERE da.agent_id = ? AND d.delivery_date BETWEEN ? AND ?`,
+    [agentId, startDate, endDate]
+  );
+  const totalCommission = result[0].total_commission;
+
+  // Check if a bill already exists for this agent & month
+  const [existing] = await connection.query(
+    `SELECT bill_id FROM agent_delivery_bills 
+     WHERE agent_id = ? AND bill_date BETWEEN ? AND ?`,
+    [agentId, startDate, endDate]
+  );
+
+  if (existing.length > 0) {
+    // Update existing bill
+    await connection.query(
+      `UPDATE agent_delivery_bills 
+       SET total_commission = ?, updated_at = NOW()
+       WHERE bill_id = ?`,
+      [totalCommission, existing[0].bill_id]
+    );
+    // Also update bill_id in assignments (if needed)
+    await connection.query(
+      `UPDATE delivery_agent_assignments 
+       SET bill_id = ? 
+       WHERE agent_id = ? AND delivery_id IN (
+         SELECT delivery_id FROM deliveries WHERE delivery_date BETWEEN ? AND ?
+       )`,
+      [existing[0].bill_id, agentId, startDate, endDate]
+    );
+  } else {
+    // Create new bill
+    const [insertResult] = await connection.query(
+      `INSERT INTO agent_delivery_bills (agent_id, bill_date, total_commission, created_at)
+       VALUES (?, ?, ?, NOW())`,
+      [agentId, startDate, totalCommission]
+    );
+    const newBillId = insertResult.insertId;
+    // Link assignments to this bill
+    await connection.query(
+      `UPDATE delivery_agent_assignments 
+       SET bill_id = ? 
+       WHERE agent_id = ? AND delivery_id IN (
+         SELECT delivery_id FROM deliveries WHERE delivery_date BETWEEN ? AND ?
+       )`,
+      [newBillId, agentId, startDate, endDate]
+    );
+  }
+}
   // ------------------------------------------------------------
   // DELETE DELIVERY (cascade will remove items & assignments)
   // ------------------------------------------------------------
@@ -1021,20 +1104,35 @@ module.exports = (db) => {
   // ------------------------------------------------------------
   // UPDATE DELIVERY STATUS
   // ------------------------------------------------------------
+
   const updateDeliveryStatus = async (deliveryId, status) => {
-    const valid = ["pending", "in_transit", "delivered", "cancelled"];
+    const valid = ["pending", "rejected", "delivered", "cancelled"];
     if (!valid.includes(status)) throw new Error("Invalid status");
-    await db.query("UPDATE deliveries SET status = ? WHERE delivery_id = ?", [
-      status,
-      deliveryId,
-    ]);
+
+    if (status === "delivered" || status === "pending") {
+      await db.query(
+        `UPDATE deliveries 
+       SET status = ?, 
+           return_status = 'none',
+           return_fee_charged = 0,
+           return_date = NULL
+       WHERE delivery_id = ?`,
+        [status, deliveryId],
+      );
+    } else {
+      await db.query("UPDATE deliveries SET status = ? WHERE delivery_id = ?", [
+        status,
+        deliveryId,
+      ]);
+    }
+
     return { success: true, message: `Status updated to ${status}` };
   };
-
   // ------------------------------------------------------------
   // RECORD RETURN (adjusted for assignments)
   // ------------------------------------------------------------
   const recordDeliveryReturn = async (returnData) => {
+    console.log(returnData);
     const connection = await db.getConnection();
     try {
       await connection.beginTransaction();
@@ -1063,19 +1161,19 @@ module.exports = (db) => {
       );
 
       for (const ass of assignments) {
-        const deduction = parseFloat(ass.commission_amount) * 0.5;
-        await connection.query(
-          `INSERT INTO agent_payments (
-            agent_id, payment_amount, payment_date, period_start, period_end,
-            payment_method, notes
-          ) VALUES (?, ?, CURDATE(), CURDATE(), CURDATE(), ?, ?)`,
-          [
-            ass.agent_id,
-            -deduction,
-            "return_deduction",
-            `Return for delivery #${returnData.delivery_id}. Reason: ${returnData.return_reason}. ${returnData.notes || ""}`,
-          ],
-        );
+        console.log(ass);
+        // const deduction = parseFloat(ass.commission_amount) * 0.5;
+        // await connection.query(
+        //   `INSERT INTO agent_payments (
+        //     agent_id, amount, payment_date,
+        //    notes
+        //   ) VALUES (?, ?, CURDATE(),  ?)`,
+        //   [
+        //     ass.agent_id,
+        //     -deduction,
+        //     `Return for delivery #${returnData.delivery_id}. Reason: ${returnData.return_reason}. ${returnData.notes || ""}`,
+        //   ],
+        // );
         await connection.query(
           `UPDATE delivery_agent_assignments SET status = 'cancelled' WHERE assignment_id = ?`,
           [ass.assignment_id],
@@ -1131,6 +1229,7 @@ module.exports = (db) => {
       b.agent_id,
       b.bill_date,
       b.created_at,
+     
       a.agent_name,
       a.phone AS agent_phone
     FROM agent_delivery_bills b
@@ -1155,6 +1254,7 @@ module.exports = (db) => {
       da.assignment_id,
       da.commission_amount,
       da.assigned_date,
+       d.return_status,
       da.status AS assignment_status,
       -- Items summary (optional but handy)
       COALESCE(SUM(di.quantity), 0) AS total_quantity,

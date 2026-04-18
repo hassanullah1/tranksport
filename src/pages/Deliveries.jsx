@@ -292,7 +292,7 @@ const Deliveries = () => {
     },
     buttons: {
       en: {
-        add_delivery: "Add New Delivery",
+        add_delivery: "Add New Items",
         add_customer: "Add New Customer",
         search: "Search",
         refresh: "Refresh",
@@ -306,7 +306,7 @@ const Deliveries = () => {
         generate: "Generate Bill"
       },
       ps: {
-        add_delivery: "نوی لیږد اضافه کړئ",
+        add_delivery: "نوی جنس اضافه کړئ",
         add_customer: "نوی پیرودونکی اضافه کړئ",
         search: "پلټل",
         refresh: "بیا ډیرول",
@@ -320,7 +320,7 @@ const Deliveries = () => {
         generate: "بل جوړول"
       },
       fa: {
-        add_delivery: "افزودن تحویل جدید",
+        add_delivery: "افزودن جنس جدید",
         add_customer: "افزودن مشتری جدید",
         search: "جستجو",
         refresh: "بارگذاری مجدد",
